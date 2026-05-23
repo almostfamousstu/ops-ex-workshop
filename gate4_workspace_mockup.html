@@ -1,0 +1,719 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>PHASE 04 — The Plan</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@1,400;1,500&family=JetBrains+Mono:wght@300;400;500;700&family=Oswald:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg-0: #050507;
+      --bg-1: #0e0e10;
+      --bg-2: #16161a;
+      --bg-3: #1d1d22;
+      --bg-deep: #0a0a0d;
+      --border: #25252c;
+      --border-strong: #3a3a44;
+      --text-1: #ececef;
+      --text-2: #94949f;
+      --text-3: #5a5a64;
+      --accent: #d92525;
+      --accent-bright: #ff3838;
+      --accent-dim: #5a1414;
+      --accent-faint: rgba(217, 37, 37, 0.08);
+      --green: #58c97e;
+      --amber: #e0a838;
+      --amber-dim: rgba(224, 168, 56, 0.3);
+      --blue: #5a8fc9;
+      --font-display: 'Oswald', sans-serif;
+      --font-mono: 'JetBrains Mono', monospace;
+      --font-serif: 'Cormorant Garamond', serif;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      background: var(--bg-0);
+      color: var(--text-1);
+      font-family: var(--font-mono);
+      font-weight: 400;
+      font-size: 13px;
+      line-height: 1.6;
+      min-height: 100vh;
+      padding: 32px;
+      background-image:
+        radial-gradient(ellipse at top, rgba(217, 37, 37, 0.04), transparent 60%),
+        linear-gradient(rgba(255,255,255,0.012) 1px, transparent 1px);
+      background-size: 100% 100%, 100% 3px;
+    }
+
+    .frame {
+      max-width: 1280px;
+      margin: 0 auto;
+      position: relative;
+      border: 1px solid var(--border);
+      background: var(--bg-1);
+    }
+
+    .frame::before, .frame::after,
+    .corner-bl, .corner-br {
+      content: '';
+      position: absolute;
+      width: 22px;
+      height: 22px;
+      border: 2px solid var(--accent);
+      pointer-events: none;
+    }
+    .frame::before { top: -1px; left: -1px; border-right: none; border-bottom: none; }
+    .frame::after  { top: -1px; right: -1px; border-left: none; border-bottom: none; }
+    .corner-bl { bottom: -1px; left: -1px; border-right: none; border-top: none; }
+    .corner-br { bottom: -1px; right: -1px; border-left: none; border-top: none; }
+
+    /* Header */
+    .header {
+      padding: 18px 32px;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 24px;
+    }
+    .header-left { display: flex; align-items: center; gap: 22px; }
+    .breadcrumb {
+      font-family: var(--font-display);
+      font-weight: 400;
+      font-size: 11px;
+      letter-spacing: 0.22em;
+      color: var(--text-2);
+      text-transform: uppercase;
+      text-decoration: none;
+      padding: 6px 12px;
+      border: 1px solid var(--border-strong);
+      transition: all 0.15s ease;
+      cursor: pointer;
+    }
+    .breadcrumb:hover { color: var(--text-1); border-color: var(--text-2); }
+    .breadcrumb::before { content: '← '; }
+    .phase-tag {
+      font-family: var(--font-display);
+      font-weight: 500;
+      font-size: 11px;
+      letter-spacing: 0.32em;
+      color: var(--text-3);
+      text-transform: uppercase;
+    }
+    .phase-title {
+      font-family: var(--font-display);
+      font-weight: 500;
+      font-size: 22px;
+      letter-spacing: 0.16em;
+      text-transform: uppercase;
+      color: var(--text-1);
+    }
+    .phase-title .accent { color: var(--accent); }
+
+    .header-right { display: flex; align-items: center; gap: 28px; }
+    .timer { display: flex; align-items: baseline; gap: 10px; }
+    .timer-label {
+      font-size: 10px; color: var(--text-3);
+      letter-spacing: 0.25em; text-transform: uppercase;
+    }
+    .timer-value {
+      font-size: 17px; font-weight: 500;
+      color: var(--text-1); letter-spacing: 0.06em;
+    }
+    .timer-value .blink { color: var(--accent); animation: blink 1.2s infinite; }
+    @keyframes blink { 0%, 60% { opacity: 1; } 61%, 100% { opacity: 0.15; } }
+    .status-pill {
+      display: inline-flex; align-items: center; gap: 8px;
+      font-size: 10px; letter-spacing: 0.18em; text-transform: uppercase;
+      color: var(--accent); padding: 5px 11px; border: 1px solid var(--accent-dim);
+    }
+    .status-pill .dot {
+      width: 6px; height: 6px; border-radius: 50%;
+      background: var(--accent);
+      animation: pulse 2s infinite;
+      box-shadow: 0 0 8px rgba(217,37,37,0.6);
+    }
+    @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.4; } }
+
+    /* Transmission */
+    .transmission {
+      padding: 30px 32px 26px;
+      border-bottom: 1px solid var(--border);
+    }
+    .transmission-header {
+      display: flex; align-items: center; gap: 12px;
+      font-size: 11px; letter-spacing: 0.2em; text-transform: uppercase;
+      color: var(--text-3); margin-bottom: 18px;
+    }
+    .transmission-header .from { color: var(--accent); }
+    .transmission-header .ts { color: var(--text-2); margin-left: auto; letter-spacing: 0.1em; }
+    .cipher-msg {
+      font-family: var(--font-serif); font-style: italic; font-weight: 400;
+      font-size: 22px; line-height: 1.55; color: var(--text-1);
+      max-width: 860px; border-left: 2px solid var(--accent); padding-left: 22px;
+    }
+
+    /* Section label */
+    .section-label {
+      font-family: var(--font-display);
+      font-size: 11px; letter-spacing: 0.32em; text-transform: uppercase;
+      color: var(--text-3); margin-bottom: 16px;
+      display: flex; align-items: center; gap: 14px;
+    }
+    .section-label::after { content: ''; flex: 1; height: 1px; background: var(--border); }
+    .section-label .badge { color: var(--accent); letter-spacing: 0.18em; }
+
+    /* Briefcase split */
+    .briefcase {
+      display: grid;
+      grid-template-columns: 300px 1fr;
+      gap: 0;
+      border-bottom: 1px solid var(--border);
+    }
+
+    /* Assets rail */
+    .assets-rail {
+      background: var(--bg-deep);
+      border-right: 1px solid var(--border);
+      padding: 26px 22px 30px;
+    }
+    .rail-heading {
+      font-family: var(--font-display);
+      font-size: 10px; letter-spacing: 0.3em; text-transform: uppercase;
+      color: var(--text-3); margin-bottom: 6px;
+    }
+    .rail-sub {
+      font-size: 10px; color: var(--text-3); font-style: italic;
+      letter-spacing: 0.02em; margin-bottom: 22px; line-height: 1.5;
+    }
+
+    .asset-group { margin-bottom: 22px; }
+    .asset-group:last-child { margin-bottom: 0; }
+    .ag-label {
+      font-family: var(--font-display);
+      font-size: 9px; letter-spacing: 0.26em; text-transform: uppercase;
+      color: var(--text-3); margin-bottom: 10px;
+      display: flex; justify-content: space-between; align-items: center;
+    }
+    .ag-label .src {
+      color: var(--text-3);
+      border: 1px solid var(--border-strong);
+      padding: 1px 6px; letter-spacing: 0.18em;
+    }
+
+    .asset-card {
+      background: var(--bg-1);
+      border: 1px solid var(--border);
+      border-left: 2px solid var(--border-strong);
+      padding: 11px 13px;
+      margin-bottom: 8px;
+      cursor: grab;
+      transition: all 0.15s ease;
+    }
+    .asset-card:last-child { margin-bottom: 0; }
+    .asset-card:hover {
+      border-color: var(--border-strong);
+      background: var(--bg-2);
+    }
+    .asset-card.p1 { border-left-color: var(--accent); }
+    .asset-card.p2 { border-left-color: var(--amber); }
+    .asset-card.p3 { border-left-color: var(--green); }
+
+    .acard-key {
+      font-family: var(--font-display);
+      font-size: 9px; letter-spacing: 0.22em; text-transform: uppercase;
+      color: var(--text-3); margin-bottom: 3px;
+    }
+    .acard-val {
+      font-size: 12px; font-weight: 500; color: var(--text-1);
+      letter-spacing: 0.02em; line-height: 1.35;
+    }
+    .acard-detail {
+      font-size: 10px; color: var(--text-2);
+      margin-top: 3px; line-height: 1.45; font-style: italic;
+    }
+    .acard-drag {
+      font-family: var(--font-display);
+      font-size: 8px; letter-spacing: 0.2em; text-transform: uppercase;
+      color: var(--text-3); margin-top: 7px;
+      display: flex; align-items: center; gap: 5px;
+    }
+    .acard-drag::before { content: '⠿'; font-size: 11px; }
+
+    /* Plan builder */
+    .plan-builder {
+      padding: 26px 32px 30px;
+    }
+
+    .plan-meta {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+      margin-bottom: 24px;
+    }
+    .field-block { }
+    .field-label {
+      font-family: var(--font-display); font-weight: 500;
+      font-size: 10px; letter-spacing: 0.3em; text-transform: uppercase;
+      color: var(--text-3); margin-bottom: 8px;
+      display: flex; justify-content: space-between; align-items: center;
+    }
+    .field-label .req { color: var(--accent); }
+    .field-input, .field-textarea {
+      width: 100%; background: var(--bg-deep);
+      border: 1px solid var(--border-strong); color: var(--text-1);
+      font-family: var(--font-mono); font-size: 13px; font-weight: 400;
+      padding: 10px 13px; letter-spacing: 0.02em; outline: none;
+      transition: all 0.15s ease; line-height: 1.55;
+    }
+    .field-input { font-weight: 500; font-size: 14px; }
+    .field-input::placeholder, .field-textarea::placeholder {
+      color: var(--text-3); font-style: italic; font-weight: 400;
+    }
+    .field-input:focus, .field-textarea:focus {
+      border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-faint);
+    }
+    .field-textarea { min-height: 64px; resize: vertical; }
+
+    /* Plan modules */
+    .plan-module {
+      border: 1px solid var(--border);
+      background: var(--bg-2);
+      margin-bottom: 14px;
+    }
+    .pm-header {
+      padding: 13px 18px;
+      border-bottom: 1px solid var(--border);
+      display: flex; align-items: center; justify-content: space-between;
+      background: var(--bg-1);
+    }
+    .pm-title {
+      font-family: var(--font-display); font-weight: 500;
+      font-size: 13px; letter-spacing: 0.22em; text-transform: uppercase;
+      color: var(--text-1);
+      display: flex; align-items: center; gap: 12px;
+    }
+    .pm-title .num {
+      font-size: 10px; color: var(--text-3); letter-spacing: 0.2em;
+    }
+    .pm-req {
+      font-family: var(--font-display);
+      font-size: 9px; letter-spacing: 0.2em; text-transform: uppercase;
+      color: var(--text-3);
+    }
+    .pm-req .ok { color: var(--green); }
+    .pm-req .warn { color: var(--amber); }
+    .pm-body { padding: 16px 18px; }
+
+    /* Sequence rows */
+    .seq-row {
+      display: grid;
+      grid-template-columns: 70px 1fr 110px;
+      gap: 10px;
+      margin-bottom: 8px;
+      align-items: center;
+    }
+    .seq-row:last-child { margin-bottom: 0; }
+    .seq-time, .seq-owner {
+      background: var(--bg-deep); border: 1px solid var(--border-strong);
+      color: var(--text-1); font-family: var(--font-mono); font-size: 12px;
+      padding: 7px 9px; outline: none; letter-spacing: 0.02em;
+    }
+    .seq-time { text-align: center; color: var(--text-2); }
+    .seq-step {
+      background: var(--bg-deep); border: 1px solid var(--border-strong);
+      color: var(--text-1); font-family: var(--font-mono); font-size: 12px;
+      padding: 7px 11px; outline: none; letter-spacing: 0.02em;
+    }
+    .seq-step:focus, .seq-time:focus, .seq-owner:focus {
+      border-color: var(--accent);
+    }
+    .seq-step .embedded-asset {
+      color: var(--accent);
+    }
+    .add-row {
+      width: 100%; margin-top: 4px; padding: 8px;
+      background: transparent; border: 1px dashed var(--border-strong);
+      color: var(--text-2); font-family: var(--font-display);
+      font-size: 10px; letter-spacing: 0.22em; text-transform: uppercase;
+      cursor: pointer; transition: all 0.15s ease;
+    }
+    .add-row:hover { color: var(--accent); border-color: var(--accent-dim); }
+    .add-row::before { content: '+ '; }
+
+    /* Drop zone hint inside step */
+    .step-with-asset {
+      display: flex; align-items: center; gap: 8px;
+      background: var(--bg-deep); border: 1px solid var(--border-strong);
+      padding: 7px 11px; font-size: 12px;
+    }
+    .step-with-asset .text { color: var(--text-1); }
+    .step-with-asset .asset-pill {
+      font-family: var(--font-display); font-size: 9px;
+      letter-spacing: 0.16em; text-transform: uppercase;
+      padding: 2px 7px; background: rgba(88,201,126,0.12);
+      color: var(--green); border: 1px solid rgba(88,201,126,0.3);
+      white-space: nowrap;
+    }
+    .step-with-asset .asset-pill.p1 { background: var(--accent-faint); color: var(--accent); border-color: var(--accent-dim); }
+    .step-with-asset .asset-pill.p2 { background: rgba(224,168,56,0.1); color: var(--amber); border-color: var(--amber-dim); }
+
+    /* Contingency rows */
+    .cont-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+      margin-bottom: 10px;
+      padding-bottom: 10px;
+      border-bottom: 1px dashed var(--border-strong);
+    }
+    .cont-row:last-of-type { border-bottom: none; margin-bottom: 4px; }
+    .cont-col-label {
+      font-family: var(--font-display);
+      font-size: 9px; letter-spacing: 0.2em; text-transform: uppercase;
+      color: var(--text-3); margin-bottom: 6px;
+    }
+    .cont-col-label.fail { color: var(--accent); }
+    .cont-col-label.resp { color: var(--green); }
+    .cont-textarea {
+      width: 100%; background: var(--bg-deep);
+      border: 1px solid var(--border-strong); color: var(--text-1);
+      font-family: var(--font-mono); font-size: 12px; line-height: 1.5;
+      padding: 8px 11px; outline: none; resize: vertical; min-height: 52px;
+    }
+    .cont-textarea:focus { border-color: var(--accent); }
+
+    .self-risk-note {
+      margin-top: 12px; padding: 11px 14px;
+      background: var(--accent-faint); border: 1px solid var(--accent-dim);
+      font-size: 11px; color: var(--text-2); line-height: 1.55;
+      letter-spacing: 0.02em;
+    }
+    .self-risk-note .label {
+      font-family: var(--font-display); font-style: normal;
+      color: var(--accent); letter-spacing: 0.18em; text-transform: uppercase;
+      font-size: 9px; display: block; margin-bottom: 4px;
+    }
+
+    /* AI partnership prompt */
+    .partnership-block {
+      margin-top: 4px;
+      padding: 18px;
+      border: 1px solid var(--border);
+      background: var(--bg-2);
+    }
+    .pb-textarea {
+      width: 100%; background: var(--bg-deep);
+      border: 1px solid var(--border-strong); color: var(--text-1);
+      font-family: var(--font-mono); font-size: 12px; line-height: 1.55;
+      padding: 10px 13px; outline: none; resize: vertical; min-height: 70px;
+    }
+    .pb-textarea::placeholder { color: var(--text-3); font-style: italic; }
+    .pb-textarea:focus { border-color: var(--accent); }
+
+    /* Actions */
+    .actions-bar {
+      padding: 22px 32px;
+      display: flex; justify-content: space-between; align-items: center; gap: 20px;
+      border-bottom: 1px solid var(--border);
+    }
+    .integration-status {
+      display: flex; align-items: center; gap: 16px;
+      font-size: 11px; letter-spacing: 0.12em; text-transform: uppercase;
+      color: var(--text-3);
+    }
+    .int-pills { display: flex; gap: 8px; }
+    .int-pill {
+      display: flex; align-items: center; gap: 6px;
+      font-family: var(--font-display);
+      font-size: 9px; letter-spacing: 0.16em; text-transform: uppercase;
+      padding: 4px 9px; border: 1px solid var(--border-strong); color: var(--text-3);
+    }
+    .int-pill.used { color: var(--green); border-color: rgba(88,201,126,0.3); }
+    .int-pill.used::before { content: '●'; font-size: 8px; }
+    .int-pill.unused::before { content: '○'; font-size: 8px; }
+    .actions { display: flex; gap: 12px; }
+    .btn {
+      font-family: var(--font-display); font-weight: 500;
+      font-size: 12px; letter-spacing: 0.28em; text-transform: uppercase;
+      padding: 14px 30px; background: var(--accent); color: var(--text-1);
+      border: none; cursor: pointer; transition: all 0.15s ease;
+    }
+    .btn:hover { background: var(--accent-bright); }
+    .btn::after { content: ' →'; }
+    .btn-ghost { background: transparent; color: var(--text-2); border: 1px solid var(--border-strong); }
+    .btn-ghost:hover { color: var(--text-1); border-color: var(--text-2); }
+    .btn-ghost::after { content: ''; }
+
+    /* Classified */
+    .classified-strip {
+      padding: 12px 32px; background: var(--bg-0);
+      display: flex; justify-content: space-between;
+      font-size: 9px; letter-spacing: 0.32em; text-transform: uppercase; color: var(--text-3);
+    }
+    .classified-strip .red { color: var(--accent); margin-right: 6px; }
+
+    @media (max-width: 1024px) {
+      .briefcase { grid-template-columns: 1fr; }
+      .assets-rail { border-right: none; border-bottom: 1px solid var(--border); }
+    }
+    @media (max-width: 700px) {
+      body { padding: 16px; }
+      .header, .transmission, .actions-bar, .classified-strip { padding-left: 18px; padding-right: 18px; }
+      .plan-builder { padding: 20px; }
+      .plan-meta { grid-template-columns: 1fr; }
+      .seq-row { grid-template-columns: 1fr; }
+      .cont-row { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+  <div class="frame">
+    <span class="corner-bl"></span>
+    <span class="corner-br"></span>
+
+    <!-- Header -->
+    <div class="header">
+      <div class="header-left">
+        <a class="breadcrumb">Mission Hub</a>
+        <div>
+          <div class="phase-tag">Phase 04 · Final</div>
+          <div class="phase-title">The <span class="accent">Plan</span></div>
+        </div>
+      </div>
+      <div class="header-right">
+        <div class="timer">
+          <span class="timer-label">T-Minus</span>
+          <span class="timer-value">12:08<span class="blink">:</span>51</span>
+        </div>
+        <div class="status-pill"><span class="dot"></span>Final Phase</div>
+      </div>
+    </div>
+
+    <!-- Transmission -->
+    <div class="transmission">
+      <div class="transmission-header">
+        <span>Transmission</span><span>//</span>
+        <span class="from">From Cipher</span>
+        <span class="ts">06:51:12 UTC</span>
+      </div>
+      <div class="cipher-msg">
+        You have your face. You have the map. You have the window. Tell me how this ends.
+        Sequence. Roles. Contingencies. If your plan can't survive a single thing going wrong, it isn't a plan.
+      </div>
+    </div>
+
+    <!-- Briefcase: assets rail + plan builder -->
+    <div class="briefcase">
+
+      <!-- Assets rail -->
+      <div class="assets-rail">
+        <div class="rail-heading">Operational Assets</div>
+        <div class="rail-sub">Everything your team recovered. Drag a card into a plan step to bind it. A strong plan uses all of them.</div>
+
+        <div class="asset-group">
+          <div class="ag-label"><span>Cover Identity</span><span class="src">P1</span></div>
+          <div class="asset-card p1">
+            <div class="acard-key">Operative</div>
+            <div class="acard-val">Marcus Vale</div>
+            <div class="acard-detail">Lumière Capital · art finance · Geneva</div>
+            <div class="acard-drag">Drag to bind</div>
+          </div>
+        </div>
+
+        <div class="asset-group">
+          <div class="ag-label"><span>Intel</span><span class="src">P2</span></div>
+          <div class="asset-card p2">
+            <div class="acard-key">Venue</div>
+            <div class="acard-val">Service corridor camera gap</div>
+            <div class="acard-detail">Kitchen → east stair · unmonitored between service windows</div>
+            <div class="acard-drag">Drag to bind</div>
+          </div>
+          <div class="asset-card p2">
+            <div class="acard-key">Host</div>
+            <div class="acard-val">Antoine Renoux</div>
+            <div class="acard-detail">Watches closely · Geneva auction history</div>
+            <div class="acard-drag">Drag to bind</div>
+          </div>
+        </div>
+
+        <div class="asset-group">
+          <div class="ag-label"><span>The Finding</span><span class="src">P3</span></div>
+          <div class="asset-card p3">
+            <div class="acard-key">Window</div>
+            <div class="acard-val">21:47 · Vault Corridor</div>
+            <div class="acard-detail">Badge 4471 · courier · staff elevator route</div>
+            <div class="acard-drag">Drag to bind</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Plan builder -->
+      <div class="plan-builder">
+        <div class="section-label">Operation Plan <span class="badge">Submission Manifest</span></div>
+
+        <!-- Objective + approach -->
+        <div class="plan-meta">
+          <div class="field-block">
+            <div class="field-label"><span>Objective</span><span class="req">Required</span></div>
+            <input class="field-input" type="text" value="Recover Helios during the courier transfer window" />
+          </div>
+          <div class="field-block">
+            <div class="field-label"><span>Approach (one line)</span><span class="req">Required</span></div>
+            <input class="field-input" type="text" value="Intercept at the vault corridor, not the auction floor" />
+          </div>
+        </div>
+
+        <!-- Sequence module -->
+        <div class="plan-module">
+          <div class="pm-header">
+            <span class="pm-title"><span class="num">01</span>Sequence</span>
+            <span class="pm-req"><span class="ok">4 steps</span> · times + owners set</span>
+          </div>
+          <div class="pm-body">
+            <div class="seq-row">
+              <input class="seq-time" value="20:55" />
+              <div class="step-with-asset">
+                <span class="text">Vale holds Renoux in the salon, away from the floor</span>
+                <span class="asset-pill p1">Marcus Vale</span>
+                <span class="asset-pill p2">Renoux</span>
+              </div>
+              <input class="seq-owner" value="Vale" />
+            </div>
+            <div class="seq-row">
+              <input class="seq-time" value="21:40" />
+              <div class="step-with-asset">
+                <span class="text">Falcon enters service corridor through the coverage gap</span>
+                <span class="asset-pill p2">Camera gap</span>
+              </div>
+              <input class="seq-owner" value="Falcon" />
+            </div>
+            <div class="seq-row">
+              <input class="seq-time" value="21:47" />
+              <div class="step-with-asset">
+                <span class="text">Intercept courier 4471 entering vault corridor</span>
+                <span class="asset-pill p3">21:47 Window</span>
+              </div>
+              <input class="seq-owner" value="Falcon + Wren" />
+            </div>
+            <div class="seq-row">
+              <input class="seq-time" value="21:52" />
+              <input class="seq-step" value="Asset secured; signal Sparrow to stage extraction" />
+              <input class="seq-owner" value="Wren" />
+            </div>
+            <button class="add-row">Add Step</button>
+          </div>
+        </div>
+
+        <!-- Roles module -->
+        <div class="plan-module">
+          <div class="pm-header">
+            <span class="pm-title"><span class="num">02</span>Roles</span>
+            <span class="pm-req"><span class="ok">4 / 4</span> agents assigned</span>
+          </div>
+          <div class="pm-body">
+            <div class="seq-row" style="grid-template-columns: 130px 1fr;">
+              <input class="seq-owner" value="Vale" style="text-align:left;" />
+              <input class="seq-step" value="Social cover. Occupy the host. Eyes on the Belgian." />
+            </div>
+            <div class="seq-row" style="grid-template-columns: 130px 1fr;">
+              <input class="seq-owner" value="Falcon" style="text-align:left;" />
+              <input class="seq-step" value="Corridor approach and primary intercept." />
+            </div>
+            <div class="seq-row" style="grid-template-columns: 130px 1fr;">
+              <input class="seq-owner" value="Wren" style="text-align:left;" />
+              <input class="seq-step" value="Secondary on intercept; carries the asset to exfil." />
+            </div>
+            <div class="seq-row" style="grid-template-columns: 130px 1fr;">
+              <input class="seq-owner" value="Sparrow" style="text-align:left;" />
+              <input class="seq-step" value="Extraction vehicle, east service entrance. Comms relay." />
+            </div>
+          </div>
+        </div>
+
+        <!-- Contingencies module -->
+        <div class="plan-module">
+          <div class="pm-header">
+            <span class="pm-title"><span class="num">03</span>Contingencies</span>
+            <span class="pm-req"><span class="ok">2 set</span> · min. 2 required</span>
+          </div>
+          <div class="pm-body">
+            <div class="cont-row">
+              <div>
+                <div class="cont-col-label fail">If this fails</div>
+                <textarea class="cont-textarea">Renoux disengages from Vale early and moves toward the floor.</textarea>
+              </div>
+              <div>
+                <div class="cont-col-label resp">We respond</div>
+                <textarea class="cont-textarea">Sparrow triggers a staged comms interruption at the bar to pull Renoux's attention; Vale re-engages.</textarea>
+              </div>
+            </div>
+            <div class="cont-row">
+              <div>
+                <div class="cont-col-label fail">If this fails</div>
+                <textarea class="cont-textarea">Courier 4471 arrives off-window or via a different route.</textarea>
+              </div>
+              <div>
+                <div class="cont-col-label resp">We respond</div>
+                <textarea class="cont-textarea">Wren monitors the badge feed live; Falcon holds position until confirmed, abort if past 22:10.</textarea>
+              </div>
+            </div>
+            <button class="add-row">Add Contingency</button>
+
+            <div class="self-risk-note">
+              <span class="label">⚑ Your Named Risk</span>
+              You flagged <strong>"the Belgian bidder not on our list"</strong> as your operation's biggest exposure. Cipher will be watching whether your plan accounts for it.
+            </div>
+          </div>
+        </div>
+
+        <!-- Exfil -->
+        <div class="plan-module">
+          <div class="pm-header">
+            <span class="pm-title"><span class="num">04</span>Exfil</span>
+            <span class="pm-req"><span class="ok">Set</span></span>
+          </div>
+          <div class="pm-body">
+            <textarea class="field-textarea" style="min-height:54px;">Asset out via east service entrance to Sparrow's vehicle by 21:55. Team disperses on foot through pre-mapped routes; rendezvous off-site. Vale remains at the gala 20 minutes post-extraction to avoid a conspicuous exit.</textarea>
+          </div>
+        </div>
+
+        <!-- AI partnership -->
+        <div class="section-label" style="margin-top: 26px;">Strategic Log <span class="badge">REQ</span></div>
+        <div class="partnership-block">
+          <div class="field-label"><span>How AI Stress-Tested This Plan</span><span class="req">Required</span></div>
+          <textarea class="pb-textarea" placeholder="Don't paste the plan AI wrote for you. Show how you used AI to challenge it — what risks it surfaced, what assumptions it questioned, what you changed as a result, and what you chose to override.">We asked Copilot to argue against our own plan as a hostile analyst. It flagged that holding Renoux for 50 minutes was unrealistic — we shortened Vale's window and added Sparrow's interruption as relief. It also pushed on the Belgian bidder; we added the abort condition at 22:10 in response.</textarea>
+        </div>
+      </div>
+    </div>
+
+    <!-- Actions -->
+    <div class="actions-bar">
+      <div class="integration-status">
+        <span>Asset Integration</span>
+        <div class="int-pills">
+          <span class="int-pill used">Cover</span>
+          <span class="int-pill used">Venue</span>
+          <span class="int-pill used">Host</span>
+          <span class="int-pill used">Finding</span>
+        </div>
+      </div>
+      <div class="actions">
+        <button class="btn-ghost btn">Save Draft</button>
+        <button class="btn">Transmit Final Plan</button>
+      </div>
+    </div>
+
+    <!-- Classified -->
+    <div class="classified-strip">
+      <span><span class="red">●</span>Classified // Internal Use Only</span>
+      <span>Session a4f-9201-7b // Phase 04 · Final</span>
+      <span>End-to-End Encrypted</span>
+    </div>
+  </div>
+</body>
+</html>

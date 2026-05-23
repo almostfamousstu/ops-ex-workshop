@@ -1,0 +1,120 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 820 560" width="820" height="560"
+     style="background:#050507; font-family: 'JetBrains Mono', 'Courier New', monospace;">
+
+  <!-- Background grid lines -->
+  <defs>
+    <pattern id="grid" width="20" height="20" patternUnits="userSpaceOnUse">
+      <path d="M 20 0 L 0 0 0 20" fill="none" stroke="#0f0f14" stroke-width="0.5"/>
+    </pattern>
+  </defs>
+  <rect width="820" height="560" fill="url(#grid)"/>
+
+  <!-- Outer frame border -->
+  <rect x="20" y="20" width="780" height="520" fill="none" stroke="#25252c" stroke-width="1"/>
+
+  <!-- Corner accents (red) -->
+  <polyline points="20,20 42,20 42,20" fill="none" stroke="#d92525" stroke-width="2"/>
+  <polyline points="20,20 20,42"        fill="none" stroke="#d92525" stroke-width="2"/>
+  <polyline points="800,20 778,20"      fill="none" stroke="#d92525" stroke-width="2"/>
+  <polyline points="800,20 800,42"      fill="none" stroke="#d92525" stroke-width="2"/>
+  <polyline points="20,540 42,540"      fill="none" stroke="#d92525" stroke-width="2"/>
+  <polyline points="20,540 20,518"      fill="none" stroke="#d92525" stroke-width="2"/>
+  <polyline points="800,540 778,540"    fill="none" stroke="#d92525" stroke-width="2"/>
+  <polyline points="800,540 800,518"    fill="none" stroke="#d92525" stroke-width="2"/>
+
+  <!-- Header bar -->
+  <rect x="20" y="20" width="780" height="42" fill="#0a0a0d" stroke="#25252c" stroke-width="1"/>
+  <text x="40" y="38" fill="#5a5a64" font-size="9" letter-spacing="3">HÔTEL HERMITAGE — EVENT LEVEL</text>
+  <text x="40" y="52" fill="#ececef" font-size="11" font-weight="bold" letter-spacing="2">FLOOR SCHEMATIC / RESTRICTED CIRCULATION</text>
+  <text x="680" y="38" fill="#d92525" font-size="8" letter-spacing="2">CLASSIFIED</text>
+  <text x="680" y="52" fill="#5a5a64" font-size="8" letter-spacing="1">REF: QS-VENUE-002</text>
+
+  <!-- ═══ ROOMS ═══ -->
+
+  <!-- Pre-Function Foyer -->
+  <rect x="40" y="90" width="220" height="100" fill="#0e0e10" stroke="#3a3a44" stroke-width="1"/>
+  <text x="52" y="108" fill="#5a5a64" font-size="8" letter-spacing="2">ZONE A</text>
+  <text x="52" y="124" fill="#ececef" font-size="10" font-weight="bold" letter-spacing="1">PRE-FUNCTION</text>
+  <text x="52" y="138" fill="#ececef" font-size="10" font-weight="bold" letter-spacing="1">FOYER</text>
+  <text x="52" y="156" fill="#5a5a64" font-size="8">Arrival / Credential Check</text>
+  <text x="52" y="168" fill="#5a5a64" font-size="8">NDA Execution</text>
+  <!-- Entry marker -->
+  <rect x="40" y="125" width="6" height="36" fill="#58c97e"/>
+  <text x="12" y="148" fill="#58c97e" font-size="7" letter-spacing="1">ENTRY</text>
+
+  <!-- Lot Viewing Salon -->
+  <rect x="300" y="90" width="220" height="100" fill="#0e0e10" stroke="#3a3a44" stroke-width="1"/>
+  <text x="312" y="108" fill="#5a5a64" font-size="8" letter-spacing="2">ZONE B</text>
+  <text x="312" y="124" fill="#ececef" font-size="10" font-weight="bold" letter-spacing="1">LOT VIEWING</text>
+  <text x="312" y="138" fill="#ececef" font-size="10" font-weight="bold" letter-spacing="1">SALON</text>
+  <text x="312" y="156" fill="#5a5a64" font-size="8">Asset Preview (20:45 close)</text>
+  <text x="312" y="168" fill="#5a5a64" font-size="8">Consignor reps on-site</text>
+
+  <!-- Main Bidding Room -->
+  <rect x="560" y="90" width="220" height="100" fill="#0e0e10" stroke="#3a3a44" stroke-width="1"/>
+  <text x="572" y="108" fill="#5a5a64" font-size="8" letter-spacing="2">ZONE C</text>
+  <text x="572" y="124" fill="#ececef" font-size="10" font-weight="bold" letter-spacing="1">MAIN BIDDING</text>
+  <text x="572" y="138" fill="#ececef" font-size="10" font-weight="bold" letter-spacing="1">ROOM</text>
+  <text x="572" y="156" fill="#5a5a64" font-size="8">Sealed bid (21:05 open)</text>
+  <text x="572" y="168" fill="#5a5a64" font-size="8">No devices permitted</text>
+
+  <!-- Connector arrows top row -->
+  <line x1="260" y1="140" x2="300" y2="140" stroke="#3a3a44" stroke-width="1" stroke-dasharray="4,3"/>
+  <polygon points="296,136 304,140 296,144" fill="#3a3a44"/>
+  <line x1="520" y1="140" x2="560" y2="140" stroke="#3a3a44" stroke-width="1" stroke-dasharray="4,3"/>
+  <polygon points="556,136 564,140 556,144" fill="#3a3a44"/>
+
+  <!-- Back-of-House Corridor (horizontal strip) -->
+  <rect x="40" y="250" width="560" height="60" fill="#0a0a0d" stroke="#3a3a44" stroke-width="1" stroke-dasharray="6,3"/>
+  <text x="52" y="270" fill="#5a5a64" font-size="8" letter-spacing="2">ZONE D — RESTRICTED</text>
+  <text x="52" y="286" fill="#94949f" font-size="10" font-weight="bold" letter-spacing="1">BACK-OF-HOUSE CORRIDOR</text>
+  <text x="52" y="300" fill="#5a5a64" font-size="8">Staff / Service Access Only  ·  Connects Event Level to Staff Elevator and Loading</text>
+
+  <!-- Vertical connector from Foyer to BOH -->
+  <line x1="150" y1="190" x2="150" y2="250" stroke="#25252c" stroke-width="1" stroke-dasharray="3,3"/>
+
+  <!-- Vertical connector from Bidding Room to BOH -->
+  <line x1="670" y1="190" x2="670" y2="250" stroke="#25252c" stroke-width="1" stroke-dasharray="3,3"/>
+
+  <!-- Staff Elevator -->
+  <rect x="40" y="370" width="130" height="80" fill="#0e0e10" stroke="#3a3a44" stroke-width="1"/>
+  <text x="52" y="392" fill="#5a5a64" font-size="8" letter-spacing="2">ZONE E</text>
+  <text x="52" y="410" fill="#ececef" font-size="10" font-weight="bold" letter-spacing="1">STAFF</text>
+  <text x="52" y="424" fill="#ececef" font-size="10" font-weight="bold" letter-spacing="1">ELEVATOR</text>
+  <text x="52" y="440" fill="#5a5a64" font-size="8">Service access</text>
+  <!-- Connector from BOH to Staff Elevator -->
+  <line x1="105" y1="310" x2="105" y2="370" stroke="#3a3a44" stroke-width="1" stroke-dasharray="4,3"/>
+  <polygon points="101,366 105,374 109,366" fill="#3a3a44"/>
+
+  <!-- Vault Corridor B — highlighted as high-interest zone -->
+  <rect x="560" y="370" width="220" height="80" fill="#0e0e10" stroke="#d92525" stroke-width="1.5"/>
+  <rect x="560" y="370" width="220" height="80" fill="rgba(217,37,37,0.04)"/>
+  <text x="572" y="392" fill="#d92525" font-size="8" letter-spacing="2">ZONE F — RESTRICTED</text>
+  <text x="572" y="410" fill="#ececef" font-size="10" font-weight="bold" letter-spacing="1">VAULT CORRIDOR B</text>
+  <text x="572" y="424" fill="#94949f" font-size="8">Secured transfer route</text>
+  <text x="572" y="438" fill="#94949f" font-size="8">Documentation suite adjacent</text>
+  <!-- Red corner accents on vault -->
+  <polyline points="560,370 572,370" fill="none" stroke="#d92525" stroke-width="2"/>
+  <polyline points="560,370 560,382" fill="none" stroke="#d92525" stroke-width="2"/>
+  <polyline points="780,370 768,370" fill="none" stroke="#d92525" stroke-width="2"/>
+  <polyline points="780,370 780,382" fill="none" stroke="#d92525" stroke-width="2"/>
+  <polyline points="560,450 572,450" fill="none" stroke="#d92525" stroke-width="2"/>
+  <polyline points="560,450 560,438" fill="none" stroke="#d92525" stroke-width="2"/>
+  <polyline points="780,450 768,450" fill="none" stroke="#d92525" stroke-width="2"/>
+  <polyline points="780,450 780,438" fill="none" stroke="#d92525" stroke-width="2"/>
+
+  <!-- Connector from BOH to Vault Corridor B -->
+  <line x1="670" y1="310" x2="670" y2="370" stroke="#d92525" stroke-width="1" stroke-dasharray="4,3" opacity="0.6"/>
+  <polygon points="666,366 670,374 674,366" fill="#d92525" opacity="0.6"/>
+
+  <!-- Legend -->
+  <rect x="40" y="490" width="740" height="1" fill="#25252c"/>
+  <text x="40" y="507" fill="#5a5a64" font-size="8" letter-spacing="1">ACCESS LEVELS:</text>
+  <rect x="130" y="499" width="8" height="8" fill="#0e0e10" stroke="#58c97e" stroke-width="1"/>
+  <text x="142" y="507" fill="#5a5a64" font-size="8">OPEN (invited guests)</text>
+  <rect x="280" y="499" width="8" height="8" fill="#0a0a0d" stroke="#3a3a44" stroke-width="1" stroke-dasharray="2,1"/>
+  <text x="292" y="507" fill="#5a5a64" font-size="8">STAFF ONLY</text>
+  <rect x="390" y="499" width="8" height="8" fill="#0e0e10" stroke="#d92525" stroke-width="1.5"/>
+  <text x="402" y="507" fill="#5a5a64" font-size="8">RESTRICTED (security-escorted)</text>
+  <text x="620" y="507" fill="#3a3a44" font-size="7" letter-spacing="1">NOT TO SCALE / SCHEMATIC ONLY</text>
+</svg>

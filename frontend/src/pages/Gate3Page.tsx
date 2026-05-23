@@ -1,0 +1,162 @@
+import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { getGateSpec, getGate3AssetUrl, submitGate, GateSpec } from '../api/client';
+import styles from './GatePage.module.css';
+
+export default function Gate3Page() {
+  const navigate = useNavigate();
+  const [spec, setSpec] = useState<GateSpec | null>(null);
+  const [csvUrl, setCsvUrl] = useState<string | null>(null);
+  const [loadingCsv, setLoadingCsv] = useState(false);
+  const [finding, setFinding] = useState('');
+  const [badgeId, setBadgeId] = useState('');
+  const [timestamp, setTimestamp] = useState('');
+  const [location, setLocation] = useState('');
+  const [anomalyDesc, setAnomalyDesc] = useState('');
+  const [reasoning, setReasoning] = useState('');
+  const [methodology, setMethodology] = useState('');
+  const [submitting, setSubmitting] = useState(false);
+  const [error, setError] = useState('');
+
+  useEffect(() => {
+    getGateSpec(3).then(setSpec).catch(console.error);
+  }, []);
+
+  async function fetchCsv() {
+    setLoadingCsv(true);
+    try {
+      const asset = await getGate3AssetUrl();
+      setCsvUrl(asset.url);
+    } catch (e) {
+      setError('Could not fetch intercept data.');
+    } finally {
+      setLoadingCsv(false);
+    }
+  }
+
+  async function handleSubmit() {
+    setError('');
+    setSubmitting(true);
+    try {
+      await submitGate(3, {
+        finding,
+        badge_id: badgeId,
+        timestamp,
+        location,
+        anomaly_description: anomalyDesc,
+        reasoning,
+        methodology,
+      });
+      navigate('/feedback/3');
+    } catch (e: unknown) {
+      setError(e instanceof Error ? e.message : 'Submission failed');
+    } finally {
+      setSubmitting(false);
+    }
+  }
+
+  if (!spec) return <div className={styles.loading}>Loading gate briefing…</div>;
+
+  const canSubmit = finding && badgeId && anomalyDesc;
+
+  return (
+    <div className={styles.page}>
+      <div className={styles.scanline} aria-hidden />
+      <div className={styles.frame}>
+        <span className={styles.cornerTl} aria-hidden />
+        <span className={styles.cornerTr} aria-hidden />
+        <span className={styles.cornerBl} aria-hidden />
+        <span className={styles.cornerBr} aria-hidden />
+
+        <div className={styles.topBar}>
+          <div className={styles.gateLabel}>Gate 03 — {spec.name}</div>
+          <button className={styles.backBtn} onClick={() => navigate('/hub')}>← Hub</button>
+        </div>
+
+        <div className={styles.cipherBlock}>
+          <div className={styles.cipherLabel}>Cipher</div>
+          <p className={styles.cipherText}>{spec.briefing}</p>
+        </div>
+
+        <div className={styles.content}>
+          <div className={styles.sectionLabel}>Mission Instructions</div>
+          <ul className={styles.instructions}>
+            {spec.instructions.map((inst, i) => <li key={i}>{inst}</li>)}
+          </ul>
+
+          {spec.hasMaterials && (
+            <>
+              <div className={styles.sectionLabel}>Intercept Data</div>
+              {!csvUrl ? (
+                <div style={{ marginBottom: 16 }}>
+                  <button
+                    className={styles.backBtn}
+                    style={{ padding: '10px 20px', fontSize: 11, letterSpacing: '0.15em' }}
+                    onClick={fetchCsv}
+                    disabled={loadingCsv}
+                  >
+                    {loadingCsv ? 'Retrieving…' : '⬇ Download RFID Intercept Log (CSV)'}
+                  </button>
+                </div>
+              ) : (
+                <div style={{ marginBottom: 16 }}>
+                  <a
+                    href={csvUrl}
+                    download="gate3_intercept.csv"
+                    style={{ color: 'var(--green)', fontFamily: 'var(--font-mono)', fontSize: 12, letterSpacing: '0.1em' }}
+                  >
+                    ✓ gate3_intercept.csv — Click to download
+                  </a>
+                </div>
+              )}
+            </>
+          )}
+
+          <div className={styles.sectionLabel}>Analysis Report</div>
+          <div className={styles.dossierGrid}>
+            <div className={styles.dossierField} style={{ gridColumn: '1 / -1' }}>
+              <label className={styles.fieldLabel}>Summary Finding</label>
+              <textarea className={styles.textarea} rows={2} value={finding} onChange={(e) => setFinding(e.target.value)} placeholder="One-sentence summary of the anomaly you found" />
+            </div>
+            <div className={styles.dossierField}>
+              <label className={styles.fieldLabel}>Suspicious Badge ID</label>
+              <input className={styles.input} type="text" value={badgeId} onChange={(e) => setBadgeId(e.target.value)} placeholder="e.g. CR-4471" />
+            </div>
+            <div className={styles.dossierField}>
+              <label className={styles.fieldLabel}>Timestamp of Anomaly</label>
+              <input className={styles.input} type="text" value={timestamp} onChange={(e) => setTimestamp(e.target.value)} placeholder="e.g. 2026-05-19 21:47:03" />
+            </div>
+            <div className={styles.dossierField}>
+              <label className={styles.fieldLabel}>Location</label>
+              <input className={styles.input} type="text" value={location} onChange={(e) => setLocation(e.target.value)} placeholder="e.g. Vault Corridor B" />
+            </div>
+            <div className={styles.dossierField}>
+              <label className={styles.fieldLabel}>Anomaly Description</label>
+              <textarea className={styles.textarea} rows={2} value={anomalyDesc} onChange={(e) => setAnomalyDesc(e.target.value)} placeholder="Why is this suspicious?" />
+            </div>
+            <div className={styles.dossierField} style={{ gridColumn: '1 / -1' }}>
+              <label className={styles.fieldLabel}>Reasoning</label>
+              <textarea className={styles.textarea} rows={3} value={reasoning} onChange={(e) => setReasoning(e.target.value)} placeholder="How did you arrive at this conclusion?" />
+            </div>
+            <div className={styles.dossierField} style={{ gridColumn: '1 / -1' }}>
+              <label className={styles.fieldLabel}>Methodology (AI prompts used)</label>
+              <textarea className={styles.textarea} rows={3} value={methodology} onChange={(e) => setMethodology(e.target.value)} placeholder="Describe how you used AI to analyze the data" />
+            </div>
+          </div>
+
+          {error && <p className={styles.error}>{error}</p>}
+          <div className={styles.submitRow}>
+            <button className={styles.submitBtn} disabled={!canSubmit || submitting} onClick={handleSubmit}>
+              {submitting ? 'Transmitting…' : 'Submit Gate 03 →'}
+            </button>
+          </div>
+        </div>
+
+        <div className={styles.footer}>
+          <span><span className={styles.red}>●</span> Gate 03 // Find the Crack</span>
+          <span>Skill: Data Analysis</span>
+        </div>
+      </div>
+    </div>
+  );
+}

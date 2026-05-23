@@ -1,0 +1,69 @@
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+[PARTIAL SIGINT INTERCEPT]
+SOURCE: Hotel internal network — Hermitage Event Level segment
+COLLECTED: [REDACTED] / CLASSIFICATION: QS-INT-003
+NOTE: Transmission is incomplete. Reconstruction is partial.
+      Some fields could not be recovered.
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+FROM:    V. Tissot / Director of Events
+TO:      [REDACTED] / Head of Event Security
+CC:      [REDACTED]
+DATE:    [RECOVERED: Day -1 / Time unknown]
+SUBJECT: RENOUX PRIVÉ — Evening Sale / Final Logistics Update
+
+─────────────────────────────────────────────────────────────────────
+
+Philippe,
+
+Following the call this afternoon, please note the following
+amendments to the security arrangement. These supersede the
+briefing document issued on [REDACTED].
+
+STAFFING
+
+  I have confirmed with Antoine that the standard four-person
+  floor team for Salon B is sufficient. He was explicit that he
+  does not want additional uniformed presence in the bidding room
+  during the session — it makes the guests uncomfortable.
+
+  Please reduce the Salon B floor team to two for the period
+  21:00 to 21:45. One static post at the entrance to the
+  Main Bidding Room. One roving. [TRANSMISSION LOST — 3 lines]
+
+  ... the remaining two are to reposition to the Pre-Function
+  Foyer and the external service corridor during that window.
+  They should not be visible from the Salon B suite.
+
+COURIER PROTOCOL
+
+  The consignor's transfer courier has been granted a one-time
+  access authorisation for the back-of-house route.
+
+  The courier will present at the Loading Dock at [REDACTED].
+  Escort from Loading Dock to Vault Corridor B via the staff
+  elevator is the responsibility of [REDACTED]. Do not use the
+  main guest lifts for this movement.
+
+  Timing of the transfer is [TRANSMISSION LOST — approximately
+  4 lines unrecoverable].
+
+  ... confirmed that this does not require you to be present
+  personally. However, I want one of our people at the
+  Vault Corridor B end for the handover. Please assign
+  someone reliable. [TRANSMISSION LOST]
+
+GENERAL
+
+  Antoine has asked that the period between [REDACTED] and the
+  opening of the bidding session is kept as clean as possible.
+  His words: "I need that room to feel like a vault, not a
+  hotel." I have told him we will manage it.
+
+  If anything changes before tomorrow evening, call me directly.
+
+  [TRANSMISSION LOST — REMAINDER OF MESSAGE NOT RECOVERED]
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+[END OF RECOVERED TRANSMISSION — QS-INT-003]
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
