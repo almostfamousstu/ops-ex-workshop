@@ -1,0 +1,421 @@
+mission:
+  id: monaco-syndicate
+  title: "Operation Quicksilver"
+  setting:
+    location: "Hôtel Hermitage, Monte Carlo"
+    antagonist: "The Syndicate"
+    macguffin: "HELIOS — an experimental autonomous targeting model"
+    time_pressure: "72 hours until auction transfer"
+
+  characters:
+    handler:
+      name: Cipher
+      voice_guide: |
+        Calm, terse, slightly weary. Short sentences. No exclamation points.
+        Never apologizes. Refers to team as "agents" or "team."
+        Speaks in declarative statements. Occasionally dry. Never warm.
+        Does not explain reasoning unless asked. Does not hedge.
+
+  opening_briefing: |
+    Agent. The Syndicate has acquired Helios — an experimental model we have
+    tracked for eighteen months. They are auctioning it in seventy-two hours at
+    the Hôtel Hermitage, Monaco, to a buyer we cannot yet identify.
+    Your team is the only one in position.
+    You will build a cover. You will gather intelligence. You will find the weakness.
+    You will tell me how this ends.
+    As always, should you or any of your team be caught or killed, the Secretary
+    will disavow all knowledge of your actions.
+
+  gates:
+    - id: build_the_legend
+      number: 1
+      name: "Build the Legend"
+      skill_focus: "Prompt Chaining + Meta-Prompting"
+      briefing: |
+        We need a face for the room. The Hôtel Hermitage auction floor does not
+        admit strangers. Your operative needs a cover that holds under scrutiny —
+        a name, an employer, a reason to be there. Build it properly.
+        Use meta-prompting to write the prompts. Chain the outputs.
+        Each step feeds the next.
+      instructions:
+        - "Write a meta-prompt that asks an AI to generate a prompt for creating a believable cover identity in the art finance world."
+        - "Run that generated prompt through Copilot to get a cover identity output."
+        - "Write a second meta-prompt that asks an AI to generate a prompt for deepening the cover backstory and creating a pretext for being at a Monaco auction."
+        - "Run that second generated prompt through Copilot, using the cover identity from Step 1 as input."
+        - "Write a third meta-prompt that generates a prompt to identify the cover's single biggest vulnerability and create a prepared response to neutralise it."
+        - "Run that third prompt through Copilot to complete the chain."
+        - "Complete the Cover Dossier using the outputs of your chain."
+      artifact_schema:
+        chain:
+          type: array
+          items:
+            step: integer
+            meta_prompt: string
+            generated_prompt: string
+            output: string
+        cover_dossier:
+          cover_name: string
+          employer: string
+          pretext: string
+          nationality: string
+          background_summary: string
+          vulnerability: string
+          prepared_response: string
+      rubric:
+        - dimension: cover_credibility
+          weight: 2.0
+          description: >
+            Does the cover identity feel real and specific? A hotel concierge could
+            verify this person exists. Generic art expert covers score low.
+            Specific employer with verifiable sector, named credentials, prior relationship
+            to the auction world scores high.
+        - dimension: chain_quality
+          weight: 1.5
+          description: >
+            Is there genuine chaining? Does each step take the output of the prior step
+            as its input? Did the team use meta-prompting (prompting an AI to write the
+            prompt) rather than just writing prompts themselves? Superficial chain
+            (same data restated) scores low. Deep chain where each step adds meaningful
+            new specificity scores high.
+        - dimension: pretext_strength
+          weight: 1.0
+          description: >
+            Is the reason to be at the auction specific and plausible?
+            "Looking at art" scores near zero. A specific piece, a specific client
+            mandate, a named relationship to someone in the room scores high.
+        - dimension: vulnerability_awareness
+          weight: 0.75
+          description: >
+            Did the team identify a genuine vulnerability in their cover and prepare
+            a specific response? Generic ("someone might ask too many questions")
+            scores low. A named, scenario-specific exposure with a credible pre-built
+            answer scores high.
+      quality_signal_schema:
+        cover_credibility: float
+        chain_quality: float
+        cover_name: string
+        employer: string
+        pretext: string
+      feedback_style: |
+        Acknowledge the cover with one specific observation — quote the name or employer
+        if it's good. Point out the single strongest element. Flag one gap if there is
+        a material one. Do not be encouraging. Do not summarise what they submitted.
+        End with a directive for Phase 2. 2-4 sentences maximum.
+
+    - id: the_dossier
+      number: 2
+      name: "The Dossier"
+      skill_focus: "Research + Multi-source Synthesis"
+      briefing: |
+        Cover's holding. Now we need the room. The Hôtel Hermitage, the host,
+        the bidders, the timeline, the security. I want a dossier I can read in five minutes
+        that tells me where to put my people. Split the work. Move.
+      instructions:
+        - "Divide the four intelligence areas across your team: Venue, Host, Bidders, Security."
+        - "Each person uses Copilot to research their assigned area. The setting is real but all operational details you produce are fictional — build from general knowledge of luxury auction events, not building-specific intelligence."
+        - "For Venue: research how high-end private auctions are typically structured — registration, lot preview, bidding session, post-auction transfer. Build a plausible fictional event timeline for the Hermitage auction and identify the single most operationally significant timing window."
+        - "For Host: research Antoine Renoux (fictional) — build a profile from the character sheet provided. Find the leverage, the pride, the pressure points."
+        - "For Bidders: identify 3-4 plausible buyer profiles for a classified AI model auction. Who has motive? Who has reach?"
+        - "For Security: research Monaco private event security norms. What are the standard protocols? Where are the gaps?"
+        - "Compile your findings. Flag the single most exploitable piece of intel in each area."
+      materials:
+        - id: gate2_renoux_profile
+          filename: gate2_renoux_profile.txt
+          label: "Renoux Intelligence Profile"
+          description: "Classified subject profile — Antoine Renoux, auction host. Handle with discretion."
+          minio_key: gate2/gate2_renoux_profile.txt
+        - id: gate2_auction_programme
+          filename: gate2_auction_programme.txt
+          label: "Auction Event Programme"
+          description: "Hôtel Hermitage private sale event schedule. Evening of Day 2."
+          minio_key: gate2/gate2_auction_programme.txt
+        - id: gate2_hermitage_schematic
+          filename: gate2_hermitage_schematic.svg
+          label: "Venue Schematic — Event Level"
+          description: "Hermitage event floor layout. Zones and access routes."
+          minio_key: gate2/gate2_hermitage_schematic.svg
+        - id: gate2_intercept_fragment
+          filename: gate2_intercept_fragment.txt
+          label: "Intercepted Staff Communication"
+          description: "Partial SIGINT extract. Source: hotel internal network. Incomplete."
+          minio_key: gate2/gate2_intercept_fragment.txt
+      artifact_schema:
+        venue:
+          assignee: string
+          key_detail: string
+          key_moment: string
+          notes: string
+          sources: array
+        host:
+          assignee: string
+          key_detail: string
+          leverage: string
+          notes: string
+          sources: array
+        bidders:
+          assignee: string
+          profiles: array
+          most_dangerous: string
+          notes: string
+          sources: array
+        security:
+          assignee: string
+          key_weakness: string
+          protocols: string
+          notes: string
+          sources: array
+      rubric:
+        - dimension: dossier_specificity
+          weight: 2.0
+          description: >
+            Are the intel items specific and usable? "The hotel has security" scores
+            near zero. "The 18-minute gap between lot preview close and bidding open,
+            when all staff are repositioning, is the only unmonitored transfer window"
+            scores high. Specificity of event timing, named personnel, schedule-based windows.
+        - dimension: dossier_completeness
+          weight: 1.5
+          description: >
+            Are all four areas covered? Is each area's single most exploitable
+            finding clearly flagged? Partial dossiers with missing areas score
+            proportionally lower.
+        - dimension: exploitable_intel_found
+          weight: 2.0
+          description: >
+            Did the team surface at least one genuinely exploitable piece of
+            operational intelligence — an event schedule gap, a host leverage point,
+            a procedural weakness in the auction transfer protocol — that could realistically
+            enable the mission?
+        - dimension: source_quality
+          weight: 0.75
+          description: >
+            Did the team cite their sources? Are they real, specific, or clearly
+            flagged as AI-synthesised? Uncited claims with no basis score low.
+      quality_signal_schema:
+        dossier_specificity: float
+        dossier_completeness: float
+        exploitable_intel_found: float
+        key_venue_detail: string
+        key_host_detail: string
+        key_security_weakness: string
+      feedback_style: |
+        Pick the best single piece of intel from the dossier and acknowledge it
+        directly. Name the area (Venue, Host, Bidders, Security). Call out one
+        gap or thin section with a single blunt sentence. End with the Phase 3
+        directive. 3-5 sentences total.
+
+    - id: find_the_crack
+      number: 3
+      name: "Find the Crack"
+      skill_focus: "Data Analysis with AI"
+      briefing: |
+        We pulled this off the venue's internal network. Somewhere in here is
+        your window. I don't want every pattern. I want the one that opens the door.
+      instructions:
+        - "Download the intercepted RFID access log (gate3_intercept.csv)."
+        - "Use Copilot (or another AI tool) to help you analyse the data. Do not just eyeball it — prompt AI to find anomalies."
+        - "Look for: access events that are out of pattern for a badge's normal role, access to restricted areas by non-security personnel, timing clusters or gaps that suggest a predictable window."
+        - "Document your methodology — how did you prompt the AI? What did you find?"
+        - "Identify the single most operationally significant anomaly. Explain why it represents a window."
+        - "Record the badge ID, timestamp, location, and why it matters."
+      materials:
+        - id: gate3_intercept
+          filename: gate3_intercept.csv
+          label: "Intercepted RFID Access Log"
+          description: "Hotel Hermitage internal badge access log. 1,247 events over 48h."
+          minio_key: gate3/gate3_intercept.csv
+      artifact_schema:
+        finding: string
+        badge_id: string
+        timestamp: string
+        location: string
+        anomaly_description: string
+        reasoning: string
+        methodology: string
+      rubric:
+        - dimension: finding_correctness
+          weight: 3.0
+          description: >
+            Did the team correctly identify Badge 4471 (courier) accessing
+            Vault Corridor B at 21:47 via the staff elevator as the primary anomaly?
+            Partial credit for identifying the vault corridor access pattern even if
+            the specific badge/time is slightly off. Full credit only if 4471 and
+            the 21:47 window are both named.
+        - dimension: reasoning_quality
+          weight: 1.5
+          description: >
+            Can the team explain why this specific event is the operational window?
+            "It's weird" scores low. "A courier badge accessing a vault-class restricted
+            zone 3 minutes before scheduled transfer via an unmapped staff route
+            indicates pre-positioned access, not random deviation" scores high.
+        - dimension: methodology_score
+          weight: 1.0
+          description: >
+            Did the team demonstrate genuine AI-assisted analysis? Did they describe
+            what prompts they used and what the AI surfaced? "We asked Copilot to
+            find anomalies and it found this" scores low. Describing the specific
+            analytical approach and prompt strategy scores high.
+      quality_signal_schema:
+        finding_correct: bool
+        reasoning_quality: float
+        methodology_score: float
+      feedback_style: |
+        If they found it: confirm the finding without excess praise. Note one strong
+        element of their reasoning. If the methodology was good, say so in one sentence.
+        If they missed it or got it partially wrong: do not reveal the answer.
+        Tell them the data has the answer and to look at role-location combinations.
+        3-4 sentences maximum.
+
+    - id: the_plan
+      number: 4
+      name: "The Plan"
+      skill_focus: "Strategic Synthesis with AI"
+      briefing: |
+        You have your face. You have the map. You have the window.
+        Tell me how this ends. Sequence. Roles. Contingencies.
+        If your plan can't survive a single thing going wrong, it isn't a plan.
+      instructions:
+        - "Synthesise everything from Phases 1-3: your cover identity, your dossier intel, and your operational window."
+        - "Define your approach in one sentence. What is the core of the plan?"
+        - "Build a sequence: timed steps with owners. Each step should map to an asset from your prior phases."
+        - "Assign roles for each team member."
+        - "Write at least two contingencies. For each: state what fails, state what you do."
+        - "Name your biggest risk. This is not optional."
+        - "Document how you used AI as a thinking partner — not to write the plan, but to stress-test it. What did it challenge? What did you change? What did you override?"
+      artifact_schema:
+        objective: string
+        approach: string
+        sequence:
+          type: array
+          items:
+            time: string
+            step: string
+            owner: string
+        roles:
+          type: array
+          items:
+            agent: string
+            role: string
+        contingencies:
+          type: array
+          items:
+            failure: string
+            response: string
+        exfil: string
+        biggest_risk: string
+        ai_partnership: string
+      rubric:
+        - dimension: plan_integration
+          weight: 2.5
+          description: >
+            Does the plan explicitly use assets from all three prior phases?
+            Cover identity in the sequence. Dossier intel driving the approach.
+            Gate 3 finding as the operational window. A plan that ignores prior
+            phases scores near zero on integration.
+        - dimension: plan_robustness
+          weight: 2.0
+          description: >
+            Are the contingencies genuine? Do they address real failure modes?
+            "If it goes wrong, abort" scores near zero. A specific failure scenario
+            with a named, credible response that uses available assets scores high.
+        - dimension: plan_specificity
+          weight: 1.5
+          description: >
+            Are the sequence steps timed and owned? Is the approach sentence actually
+            specific to this mission? Generic tactical plans ("gain access, retrieve
+            asset, exfil") score low. Plan tied to the specific venue, window,
+            and operative roles scores high.
+        - dimension: ai_partnership_quality
+          weight: 1.5
+          description: >
+            Did the team genuinely stress-test their plan with AI? "We used Copilot
+            to help write the plan" scores near zero — that's the wrong use.
+            "We prompted Copilot as a hostile analyst, it surfaced X, we changed Y,
+            but overrode Z because of W" scores high.
+        - dimension: risk_awareness
+          weight: 1.0
+          description: >
+            Did the team name a specific, real risk? Something from their own dossier
+            or the scenario context? "Something could go wrong" scores zero.
+            A named, scenario-grounded risk ("the unidentified Belgian bidder who
+            recognised our cover at dinner") scores high.
+      quality_signal_schema:
+        plan_integration: float
+        plan_robustness: float
+        plan_specificity: float
+        ai_partnership_quality: float
+        chosen_approach: string
+        biggest_risk_named: string
+      feedback_style: |
+        Acknowledge the approach in one sentence — quote it if it's sharp.
+        Name one thing the plan does well. Name one exposure or gap.
+        Reference their biggest_risk_named directly — tell them whether their
+        plan actually accounts for it. End with a single line signalling that
+        Cipher is now computing the run. 4-6 sentences maximum.
+
+  scenario_player:
+    prompt_template: |
+      You are writing the mission outcome narrative for Operation Quicksilver.
+      You write in the style of a terse, cinematic thriller. Third person.
+      Past tense. Short paragraphs. Named details over generalities.
+
+      The team's callsign is: {{callsign}}
+
+      Their quality signals across all four phases:
+      {{quality_signals_json}}
+
+      Their actual artifacts (cover identity, dossier intel, finding, plan):
+      {{artifacts_markdown}}
+
+      Write a 5-act narrative called "The Run" with these acts:
+      Act 1 — Insertion
+      Act 2 — First Contact
+      Act 3 — The Window
+      Act 4 — The Take
+      Act 5 — Extraction
+
+      Rules:
+      - Use the team's actual cover_name, employer, and pretext from Gate 1 in the narrative.
+      - Use the key_venue_detail, key_host_detail, and key_security_weakness from Gate 2 to shape the approach.
+      - Use the Gate 3 finding (badge, timestamp, location) as the literal operational window in Act 3.
+      - Reflect quality signals proportionally: signals >= 0.75 mean things go to plan. Signals 0.40-0.74 mean complications. Signals < 0.40 mean failures.
+      - The team's biggest_risk_named from Gate 4 MUST appear in the narrative as the thing that nearly breaks the mission.
+      - The chosen_approach from Gate 4 should be clearly recognisable in the action.
+      - If plan_robustness >= 0.6, at least one contingency saves the team. If < 0.4, it doesn't.
+      - Do not explain quality signals or rubrics. Write as pure narrative.
+      - Each act: 2-4 paragraphs. ~120-200 words per act.
+      - Overall outcome is determined by the weighted aggregate signal below.
+
+      Weighted aggregate: {{weighted_aggregate}}
+      Outcome tier: {{outcome_type}}
+      — clean_success: the mission succeeds, Helios is recovered, team extracts cleanly.
+      — partial_success: Helios is recovered but at cost (a cover blown, a team member burned, a loose end).
+      — failure: the window is missed or the asset is lost; team extracts without Helios.
+
+      Output each act as a JSON object in a JSON array with keys: act_number, act_title, prose.
+      No preamble. No commentary. Only the JSON array.
+
+    outcome_thresholds:
+      clean_success: ">= 0.75"
+      partial_success: ">= 0.50"
+      failure: "< 0.50"
+
+    signal_weights:
+      cover_credibility: 1.5
+      chain_quality: 0.75
+      dossier_specificity: 1.5
+      dossier_completeness: 0.75
+      exploitable_intel_found: 1.5
+      finding_correct: 3.0
+      reasoning_quality: 1.0
+      methodology_score: 0.5
+      plan_integration: 2.0
+      plan_robustness: 1.5
+      plan_specificity: 1.0
+      ai_partnership_quality: 1.0
+
+    staging:
+      - "Act 1 — Insertion"
+      - "Act 2 — First Contact"
+      - "Act 3 — The Window"
+      - "Act 4 — The Take"
+      - "Act 5 — Extraction"

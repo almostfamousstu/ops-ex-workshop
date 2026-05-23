@@ -1,0 +1,25 @@
+.wrapper {
+  border-left: 2px solid var(--accent);
+  padding: 12px 20px;
+  background: var(--bg-2);
+  margin: 16px 0;
+}
+
+.label {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.15em;
+  color: var(--accent);
+  text-transform: uppercase;
+  display: block;
+  margin-bottom: 8px;
+}
+
+.text {
+  font-family: var(--font-serif);
+  font-style: italic;
+  font-size: 22px;
+  line-height: 1.5;
+  color: var(--text-1);
+}
