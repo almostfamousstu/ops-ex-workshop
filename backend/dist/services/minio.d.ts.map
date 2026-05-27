@@ -1,0 +1,1 @@
+{"version":3,"file":"minio.d.ts","sourceRoot":"","sources":["../../src/services/minio.ts"],"names":[],"mappings":"AAmBA,wBAAsB,wBAAwB,IAAI,OAAO,CAAC,IAAI,CAAC,CAgD9D;AAED,wBAAsB,eAAe,CAAC,SAAS,EAAE,MAAM,EAAE,aAAa,SAAO,GAAG,OAAO,CAAC,MAAM,CAAC,CAG9F;AAED,wBAAsB,cAAc,CAAC,SAAS,EAAE,MAAM,GAAG,OAAO,CAAC,MAAM,CAAC,cAAc,CAAC,CAGtF"}
