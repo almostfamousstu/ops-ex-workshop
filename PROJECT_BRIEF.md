@@ -107,7 +107,7 @@ Output streams act-by-act to the frontend (SSE or chunked HTTP). Each act has a 
 - Backend: Next.js API routes (single-app monorepo), Node 20+
 - Database: Postgres 15+, JSONB for artifact content
 - Object storage: MinIO (S3-compatible) for uploaded files
-- LLM: Anthropic Claude API
+- LLM: LLM Mesh (internal endpoint, Vanilla provider)
 - Deployment: Docker compose, single VPS
 
 **Suggested layout:**
@@ -192,7 +192,7 @@ Five phases, roughly 4–5 weeks total focused dev time.
 - Mission spec for Operation Quicksilver loaded at boot
 
 **Phase 1 — Evaluation Service (3–4 days)**
-- Anthropic Claude API integration
+- LLM Mesh API integration
 - Per-gate evaluation prompt template (rubric + voice guide injected)
 - Structured output: score, feedback_md, quality_signal_jsonb
 - Persistence and test harness with synthetic artifacts at strong/mid/weak quality

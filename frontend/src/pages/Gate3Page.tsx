@@ -24,7 +24,7 @@ export default function Gate3Page() {
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState('');
 
-  const { savedLabel, clearSave } = useGateAutosave(3, { finding, badgeId, timestamp, location, anomalyDesc, reasoning, methodology });
+  const { savedLabel } = useGateAutosave(3, { finding, badgeId, timestamp, location, anomalyDesc, reasoning, methodology });
 
   useEffect(() => {
     getGateSpec(3).then(setSpec).catch(console.error);
@@ -55,7 +55,6 @@ export default function Gate3Page() {
         reasoning,
         methodology,
       });
-      clearSave();
       navigate('/feedback/3');
     } catch (e: unknown) {
       setError(e instanceof Error ? e.message : 'Submission failed');

@@ -1,13 +1,9 @@
 "use strict";
-var __importDefault = (this && this.__importDefault) || function (mod) {
-    return (mod && mod.__esModule) ? mod : { "default": mod };
-};
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.generateScenario = generateScenario;
-const sdk_1 = __importDefault(require("@anthropic-ai/sdk"));
+const llmMeshClient_1 = require("./llmMeshClient");
 const missionSpec_1 = require("./missionSpec");
 const queries_1 = require("../db/queries");
-const anthropic = new sdk_1.default({ apiKey: process.env.ANTHROPIC_API_KEY });
 function computeWeightedAggregate(submissions, signalWeights) {
     let totalWeight = 0;
     let weightedSum = 0;
@@ -71,21 +67,11 @@ async function generateScenario(teamId, callsign, submissions) {
         .replace(/\{\{weighted_aggregate\}\}/g, String(weightedAggregate))
         .replace(/\{\{outcome_type\}\}/g, outcomeType);
     try {
-        let buffer = '';
-        const stream = anthropic.messages.stream({
-            model: 'claude-haiku-4-5',
-            max_tokens: 3000,
-            messages: [{ role: 'user', content: prompt }],
+        const meshPrompt = (0, llmMeshClient_1.buildPrompt)({
+            userContent: prompt,
+            directives: ['[[max_tokens=3000]]'],
         });
-        for await (const event of stream) {
-            if (event.type === 'content_block_delta' &&
-                event.delta.type === 'text_delta') {
-                buffer += event.delta.text;
-                // Try to extract complete acts from the buffer as they arrive
-                // Expecting JSON array: [{act_number, act_title, prose}, ...]
-                // We parse acts as complete objects appear
-            }
-        }
+        const buffer = await (0, llmMeshClient_1.executeVanillaPrompt)(meshPrompt);
         // Full response received — parse and store all acts
         const jsonMatch = buffer.match(/\[[\s\S]*\]/);
         if (!jsonMatch)

@@ -1,0 +1,1852 @@
+LLM-Admin: Template Management System
+Index
+1.	Overview
+2.	Key features
+3.	Template creation
+o	Normal templates
+o	Corpora templates
+	Auto-Chunking
+	Descriptors
+4.	Namespaces
+o	Namespace Creation
+o	Namespace creation from Corpora
+o	Default Option
+5.	Directives
+o	Model directives
+	GPT Model directives
+o	Custom directives
+	url_get
+	EMBED_TEMPLATE
+	EMBED_TEMPLATE_NOFAIL
+	SYSTEM Prompt
+	EMBED_TEMPLATE_VECTOR
+	EMBED_TEMPLATE_VECTOR_NOFAIL
+	EMBED_NAMESPACE_VECTOR
+	Reranking
+	'K' Parameter
+	EMBED_TEMPLATE_CHAIN (PARALLEL EXECUTION)
+6.	Template Execution
+7.	Tool Functions
+8.	MCP Server
+9.	External Endpoint service
+o	svc-gettemplate
+o	svc-savetemplate
+o	svc-deletetemplate
+o	svc-templatestats
+o	svc-all-templatestats-db
+o	getEmiriImage
+o	svc-gettemplate-by-namespace
+o	svc-download
+o	svc-namespace-list
+o	svc-save-corpora-template
+o	svc-save-corpora-template/{template_uuid}
+o	svc-delete-corpora-template
+o	svc-search-namespace
+o	svc-search-geography-namespace
+o	svc-bulk-search-namespace
+10.	Regression test suite creation
+11.	Provider execution
+12.	Run multiple prompts in parallel
+13.	API Secrets management
+Overview
+LLM-Admin is a Template Management System designed to provide prompts optimized for GPT execution, ensuring precise and effective results. LLM-Admin provides a structured approach to template management, ensuring efficiency in GPT-based automation. By leveraging directives, users can finely tune model behavior and enhance template execution capabilities.
+Back to Index
+Key Features
+•	Template support: Users can define prompts tailored for execution.
+•	Namespace and Corpora support: A namespace is a dedicated grouping under which multiple corpora templates (vectorized) can be stored.
+•	Execution Endpoint: Templates can be executed via a designated OpenAI endpoint.
+•	Customization & Reusability: The system allows easy customization and reuse of templates.
+•	Caching: Enables faster execution by storing previously computed results, reducing redundant API calls.
+•	Asynchronous Execution: Supports running tasks asynchronously, improving efficiency and allowing parallel execution of multiple templates.
+•	Streaming Responses: This allows the system to send output progressively, delivering partial results in real time as they are generated. This improves user experience by reducing wait times and enabling faster visibility into long-running operations.
+Back to Index
+Template Creation
+There are two ways to create and execute a template: through the UI or by using the SVC endpoints, which are outlined below.
+UI:
+The first step is to log in to the Unify portal with authenticated credentials.
+URL: https://analytics-qa.iriworldwide.com/unify-analyticsqa
+Once you log in to Unify, you will be able to access the LLM-template admin portal at:
+URL: https://analytics-qa.iriworldwide.com/llmadminui/
+________________________________________
+There are two types of templates in the system:
+1.	Normal Templates – These are non-vectorized templates and can be managed through the Templates page.
+2.	Corpora – These contain vectorized templates and are managed separately under the Corpora section.
+This separation helps distinguish between standard templates and those enhanced with vector embeddings.
+Back to Index
+________________________________________
+Normal Templates
+To create a regular template, navigate to the Templates page and click the "Create" button in the top-right corner to create a template.
+ 
+________________________________________
+ 
+Name – Enter the name of the template.
+LLM Template Type – This is the template type referenced by the user, and it can be created, edited, or deleted from the ‘Template Type’ page
+Notes – General notes for the current version. Any edits or modifications to the template will update the version along with the notes. This is not a mandatory field.
+Tags – Used for reference and remain unchanged across template versions. Tags can be created under the "Tags" section in the left menu. This is not a mandatory field.
+LLM Template - This is where we provide the actual prompt used for execution.
+Once you fill in all the required fields, the submit button will be enabled. Once we hit submit, a template will be created.
+Example:
+Name: Test_Template
+Sample Prompt: Get me a sample code from C
+ 
+ 
+You can add parameters inside a prompt using the following format: {{Parameter}}.
+For example, a prompt like:
+"Get me a sample code from {{Language}}."
+ 
+You can save the prompt using the Submit button. If you click the Test button, a pop-up will appear asking you to confirm the save before execution.
+During runtime, the {{Language}} parameter will be dynamically replaced with the specified value.
+ 
+You can pass any language of your choice, and it will return the corresponding results. Note: Each time you provide a different value, a new cache will be generated. If you use the same prompt with the same value, the results will be retrieved from the cache and displayed.
+Back to Index
+________________________________________
+Corpora Templates
+To create a Corpora template, navigate to the Corpora page and click the "Create" button in the top-right corner to create a template.
+  
+When we click the Submit button after entering all the required fields while creating a corpora template, the status changes to Queued.
+Once the job is picked up for processing, the status changes to In Progress, and after the chunks are successfully updated in the Qdrant storage, the status changes to Completed.
+Name – Enter the name of the template.
+LLM Template Type – This is the template type referenced by the user, and it can be created, edited, or deleted from the ‘Template Type’ page
+Notes – General notes for the current version. Any edits or modifications to the template will update the version along with the notes. This is not a mandatory field.
+Tags – Used for reference and remain unchanged across template versions. Tags can be created under the "Tags" section in the left menu. This is not a mandatory field.
+Template Input (Text/File Toggle) –
+•	When Text is selected, prompts can be provided for execution.
+•	When a File is selected, a file can be attached. This template can then be embedded into another template, allowing queries related to the attachment to retrieve answers from it.
+Auto Chunking
+ 
+When this checkbox is enabled, the chunk type, size, and overlap options will be disabled. These values will be automatically assigned by the system based on the uploaded file and will follow the strategy below for auto-chunking the data.
+STRATEGY
+When inserting documents into a vector database for RAG (Retrieval-Augmented Generation) applications, the chunking strategy significantly impacts retrieval quality. This tool analyzes file content and recommends one of three strategies:
+Strategy	Best For	Description
+Character	Prose, narratives, reports	Splits by character count with overlap to preserve context
+Line	Tabular data, CSV, JSON-lines	Splits by line boundaries to preserve record integrity
+Automatic	PowerPoint files	Delegates to external slide-based processing pipeline
+Usage
+Standard Mode
+Analyzes the file and returns a uniform chunking recommendation
+Output:
+{"strategy":"character","size":800,"overlap":100}
+Boundary Detection Mode
+Analyzes the full file, detects structural boundaries (for documents) or intelligent groupings (for tabular data), and returns variable-sized chunks
+Outputs:
+Output (variable chunks detected):
+{
+"strategy": "character",
+"chunks": [
+{"size": 295, "overlap": 35},
+{"size": 388, "overlap": 46},
+{"size": 214, "overlap": 25}
+],
+"boundary": true
+}
+Output (boundary detection not optimal, falls back to uniform):
+{"strategy":"line","size":5,"overlap":0,"boundary":false}
+JSON Lines Generation
+Converts tabular data (CSV/TSV with headers) to JSON Lines format. The generatedFile field contains the path to the created .jsonl file.
+Output:
+{
+  "strategy": "line",
+  "size": 60,
+  "overlap": 0,
+  "generatedFile": "/path/to/data.jsonl"
+}
+Combining Options
+The --boundaries and --generateJSONLines were combined to prduce the output as:
+{
+"strategy": "line",
+"size": 60,
+"overlap": 0,
+"boundary": false,
+"generatedFile": "/path/to/data.jsonl"
+}
+How It Works
+The analyzer processes files through multiple stages:
+┌─────────────────┐     ┌─────────────────┐     ┌─────────────────┐
+│  File Type      │     │  Text           │     │  Content        │
+│  Detection      │ ──► │  Extraction     │ ──► │  Analysis       │
+│  (by extension) │     │  (PDF/Word/etc) │     │  (heuristics)   │
+└─────────────────┘     └─────────────────┘     └─────────────────┘
+                                                        │
+                              ┌──────────────────────────┴──────────────────────────┐
+                              │                                                      │
+                              ▼                                                      ▼
+                    ┌─────────────────┐                                  ┌─────────────────┐
+                    │  Character      │                                  │  Line-Based     │
+                    │  Analysis       │                                  │  Analysis       │
+                    │  (boundaries)   │                                  │  (grouping)     │
+                    └────────┬────────┘                                  └────────┬────────┘
+                              │                                                      │
+                              ▼                                                      ▼
+                    ┌─────────────────┐                                  ┌─────────────────┐
+                    │  Section        │                                  │  Intelligent    │
+                    │  Detection      │                                  │  Row Grouping   │
+                    └────────┬────────┘                                  └────────┬────────┘
+                              │                                                      │
+                              └──────────────────────────┬───────────────────────────┘
+                                                        │
+                                                        ▼
+                                               ┌─────────────────┐
+                                               │  JSON Output    │
+                                               └─────────────────┘
+File Type Detection
+Files are categorized by extension:
+Extension	Type	Processing
+.pdf	PDF	PDFBox text extraction
+.doc, .docx	Word	Apache POI extraction
+.xls, .xlsx	Excel	Apache POI cell-by-cell extraction
+.ppt, .pptx	PowerPoint	Returns automatic immediately
+.txt, .csv, .json, .jsonl, .xml, .md, .log, .yaml, .yml	Text	Direct file read
+Other	Text	Treated as plain text (best effort)
+Text Extraction
+Each file type has a specialized extractor:
+•	PDF: Uses Apache PDFBox PDFTextStripper to extract all text content
+•	Word (.docx): Uses Apache POI XWPFWordExtractor for Office Open XML format
+•	Word (.doc): Uses Apache POI WordExtractor for legacy format
+•	Excel: Iterates through all sheets, rows, and cells; joins cell values with tabs, rows with newlines
+•	Text files: Direct UTF-8 file read
+Content Analysis
+The analyzer samples content and computes the following metrics:
+Metric	Description	Used For
+Average Line Length	Mean character count per non-empty line	Detecting prose vs. tabular
+Line Length Coefficient of Variation	Standard deviation / mean	Measuring consistency
+Delimiter Ratio	(commas + tabs + pipes) / total characters	Detecting structured data
+JSON Pattern Detection	Regex matching for [{...}] or {...} per line	Identifying JSON-lines
+CSV Structure Detection	Consistent delimiter count across lines	Identifying tabular data
+Chunking Strategies
+Character-Based Chunking
+When Used: Prose, narratives, reports, documentation, and free-form text.
+How It Works: Content is split into chunks of N characters with M characters of overlap.
+Document: "The quick brown fox jumps over the lazy dog. The dog was sleeping."
+Chunk 1 (chars 0-30):   "The quick brown fox jumps over"
+Chunk 2 (chars 20-50):  "jumps over the lazy dog. The d"  ← 10 char overlap
+Chunk 3 (chars 40-66):  "dog. The dog was sleeping."     ← 10 char overlap
+Character Chunk Sizes
+Size	Overlap	When Recommended	Rationale
+500	75	Technical documentation	Smaller chunks for precise retrieval
+800	100	Standard prose, reports	Balanced paragraph-level context
+1200	150	Long-form content, academic papers	Preserves broader context
+Line-Based Chunking
+When Used: Tabular data (CSV/TSV), JSON-lines, structured records, log files.
+How It Works: Content is split by line boundaries with no overlap.
+CSV Data:
+id,name,email
+1,John,john@example.com
+2,Jane,jane@example.com
+With size=2 (2 lines per chunk):
+Chunk 1: "1,John,john@example.com\n2,Jane,jane@example.com"
+Automatic (PowerPoint)
+When Used: PowerPoint files (.ppt, .pptx).
+Returns immediately without content analysis:
+{"strategy":"automatic","size":0,"overlap":0}
+Detected Boundary Patterns
+For character-based content (documents):
+Pattern	Example
+Markdown Headers	## Introduction
+Numbered Sections	3.2 Methodology
+Chapter/Section Labels	Chapter 5
+ALL CAPS Headers	EXECUTIVE SUMMARY
+Horizontal Rules	-------------------
+Double Blank Lines	Paragraph separators
+Page Breaks	Form feed or [Page X] markers
+HTML/XML Tags	<section>, <h1>-<h6>
+For line-based content (tabular):
+•	Blank lines (record group separators)
+•	JSON array boundaries
+•	Comment lines (starting with #)
+Boundary Optimality
+The analyzer automatically evaluates if boundary detection provides value. It falls back to uniform chunking (boundary: false) when:
+Condition	Reason
+No internal boundaries detected	Only start/end found
+Too few chunks (< 3)	No benefit from variable sizing
+Too many chunks (> 100)	Over-segmentation
+All chunk sizes identical	Uniform chunking is equivalent
+Chunk sizes too uniform (CV < 0.15)	No meaningful variation
+Degenerate chunking	One chunk has >70% of content
+JSON-lines format	Uniform chunking is better
+________________________________________
+Intelligent Line Chunking
+When --boundaries is used with CSV or JSON-lines files, the analyzer performs intelligent grouping based on common values in leading columns/properties.
+How Intelligent Chunking Works
+1.	Inspect leading columns: Examines the first 1-3 columns of each row
+2.	Detect groupings: Identifies consecutive rows with the same value
+3.	Calculate chunk sizes: Returns chunk sizes matching natural data groups
+4.	Optimize: If all groups are the same size, returns uniform chunking
+Intelligent Chunking Examples
+Input: Sales data grouped by department
+department,employee,title,salary
+Engineering,John Smith,Senior Developer,95000
+Engineering,Jane Doe,Developer,75000
+Engineering,Bob Wilson,Junior Developer,55000
+Engineering,Alice Brown,Tech Lead,110000
+Marketing,Sarah Johnson,Marketing Manager,85000
+Marketing,Mike Davis,Content Writer,60000
+Marketing,Lisa Chen,SEO Specialist,65000
+Sales,Tom Anderson,Sales Director,120000
+Sales,Emily White,Account Executive,70000
+Output:
+{
+  "strategy": "line",
+  "chunks": [
+    {"size": 4, "overlap": 0},
+    {"size": 3, "overlap": 0},
+    {"size": 2, "overlap": 0}
+  ],
+  "boundary": true
+}
+The analyzer detected:
+•	4 rows for Engineering (John, Jane, Bob, Alice)
+•	3 rows for Marketing (Sarah, Mike, Lisa)
+•	2 rows for Sales (Tom, Emily)
+Input: Product data with uniform groups
+region,store_id,sales
+North,101,5000
+North,102,4500
+North,103,6000
+South,201,3500
+South,202,4000
+South,203,5500
+Output:
+{"strategy":"line","size":3,"overlap":0,"boundary":false}
+Since all regions have exactly 3 stores, the analyzer returns uniform chunking with size: 3 and boundary: false.
+Input: JSON-lines grouped by category
+{"category":"Electronics","product":"iPhone","price":999}
+{"category":"Electronics","product":"MacBook","price":2499}
+{"category":"Clothing","product":"Shirt","price":50}
+{"category":"Clothing","product":"Pants","price":80}
+{"category":"Clothing","product":"Jacket","price":200}
+Output:
+{
+  "strategy": "line",
+  "chunks": [
+    {"size": 2, "overlap": 0},
+    {"size": 3, "overlap": 0}
+  ],
+  "boundary": true
+}
+________________________________________
+JSON Lines Generation Details
+The --generateJSONLines flag converts CSV/TSV files to JSON Lines format.
+When It Applies
+•	File is detected as tabular (CSV or TSV)
+•	Has a header row
+•	Content has a structured delimiter pattern
+Conversion Features
+Feature	Behavior
+Delimiter detection	Auto-detects comma, tab, or pipe
+Header cleaning	Converts to lowercase, replaces spaces with underscores
+Type inference	Numbers stay numeric, booleans detected, nulls handled
+Quote handling	Properly parses quoted values with embedded delimiters
+Example Conversion
+Input (data.csv):
+id,name,email,active,score
+1,John Smith,john@example.com,true,95.5
+2,Jane Doe,jane@example.com,false,
+Generated (data.jsonl):
+{"id":1,"name":"John Smith","email":"john@example.com","active":true,"score":95.5}
+{"id":2,"name":"Jane Doe","email":"jane@example.com","active":false,"score":null}
+________________________________________
+Output Format
+All output is JSON written to stdout:
+Standard Mode
+{"strategy":"character","size":800,"overlap":100}
+Field	Type	Description
+strategy	string	"character", "line", or "automatic"
+size	integer	Characters or lines per chunk
+overlap	integer	Overlap amount (0 for line-based)
+Boundary Mode
+When --boundaries is used, additional fields appear:
+With variable chunks (boundary detection successful):
+{
+  "strategy": "character",
+  "chunks": [
+    {"size": 295, "overlap": 35},
+    {"size": 388, "overlap": 46}
+  ],
+  "boundary": true
+}
+With uniform fallback (boundary detection not optimal):
+{"strategy":"line","size":5,"overlap":0,"boundary":false}
+Field	Type	Description
+chunks	array	Variable-sized chunk definitions (when boundary: true)
+boundary	boolean	Whether boundary-aware chunking was applied
+With JSON Lines Generation
+{
+  "strategy": "line",
+  "size": 60,
+  "overlap": 0,
+  "boundary": false,
+  "generatedFile": "/path/to/data.jsonl"
+}
+Field	Type	Description
+generatedFile	string	Path to the generated .jsonl file
+Chunk Type:
+Character - Character chunking is a method of splitting text into smaller segments based on a fixed number of characters.
+Chunk character size - Chunk character size defines the maximum number of characters included in a single chunk when a file is split for processing (for example, during embedding or indexing). It determines how large each chunk of text will be.
+Larger chunk sizes contain more context but may:
+Increase processing time
+Reduce precision in retrieval
+Smaller chunk sizes:
+Improve search accuracy
+May lose contextual continuity
+- Default max characters per chunk: 1200
+- Default overlap: 200
+- If the chunk size is less than 500, a warning pop-up will appear on save.
+Chunk character overlap - Chunk character overlap defines how many characters are repeated between consecutive chunks.
+Overlap helps preserve context between chunks, especially when sentences or ideas span chunk boundaries.
+The overlapping characters from the end of one chunk are repeated at the beginning of the next chunk.
+Line - Line chunking splits text based on line boundaries instead of character count.
+Each line—or a group of lines—is treated as a chunk.
+Chunk line size
+Chunk line size defines the maximum number of lines included in a single chunk when a file is split for processing (for example, during embedding or indexing). It determines how many lines of text are grouped together as one chunk.
+Chunk line overlap
+Chunk line overlap defines how many lines are repeated between consecutive chunks.
+Overlap helps preserve context between chunks, especially when meaningful content spans multiple lines.
+The overlapping lines from the end of one chunk are repeated at the beginning of the next chunk, ensuring continuity during processing and retrieval.
+- If the chunk count is greater than 100, a warning pop-up will appear on save.
+- Default lines per chunk: 25
+- Default overlap: 3
+•	Behavior When Changing Chunk Type
+o	When switching from character → line or line → character, the system will reset the chunk configurations and display a confirmation pop-up before applying the change.
+Vector type:
+All templates created under the Corpora section will be vectorized, and the processed content will be stored in three different vector storages: Faiss, Qdrant, and BM25.
+ 
+Max Line Per Chunk:
+A new flag has been added to the corpora template page to handle auto-chunking when a JSONL file is provided as input.
+ 
+When this flag is enabled, chunking is performed based on the maximum token limit of the selected embedding model. If the flag is not enabled, chunking proceeds using the default global maximum lines per chunk value.
+Back to Index
+Descriptors
+In the Create corpora menu, a checkbox has been added to enable this feature, as shown below:
+ 
+When corpora results are embedded into a prompt, a structured descriptor will be prepended that explains the corpora content, format, and schema.
+The descriptor includes:
+•	Corpora name
+•	Corpora description
+•	Data format (CSV, TSV, JSON, text, etc.)
+•	Data contents description
+•	Schema or header row (if available)
+ 
+When the corpora template is embedded using the EMBED_TEMPLATE_VECTOR directive, the results will update the prompt as follows:
+ 
+Note that existing corpora templates must be re-run in order to enable this feature during embedding.
+Namespaces
+Overview
+Namespaces serve as logical containers that group multiple templates under a common vector type. Each namespace is tied to the vectorization method selected—ensuring that all templates within it follow the same vector storage and processing rules. This structure helps maintain consistency, improve organization, and enables efficient management of vectorized content across the system.
+A namespace is a dedicated grouping under which multiple templates can be stored and vectorized. When a vector type is selected (Faiss, Qdrant, or BM25), the corresponding namespace is created specifically under that vector type. All templates added to this namespace will inherit the same vectorization method.
+We can assign a template to a particular namespace by using the namespace dropdown on the create corpora pop-up.
+ 
+•	When creating a new Corpora template, you can use the Create New option in the namespace dropdown.
+•	This option allows you to generate a new namespace on the fly without leaving the template creation flow.
+ 
+Generate Manifest
+This option creates manifest templates for all the associated templates under the namespace. The Manifest template will include a human-readable summary, key topics, document type, and example questions that the file could answer. This metadata will improve discoverability, search filtering, governance, and debugging. It will also map the file to the chunks/vectors generated from it.
+Example:
+ 
+The manifest templates will be created with the template name followed by _manifest.
+ 
+The manifest templates will be placed in a new namespace that is suffixed with _manifest, followed by the namespace name.
+EDIT NAMESPACE
+When we edit an existing namespace,
+•	We cannot change the vector type
+•	We cannot delete a namespace when there are associated templates
+•	When we edit the name of the namespace, the respective name should be updated on all the associated manifest templates.
+•	When we delete a template under the namespace, the corpora template will be deleted and the respective chunks will be deleted from the Qdrant storage as well.
+•	When we update the content of a corpora template, the chunking process starts all over and the status will be changed to Queued.
+Creating a Namespace Directly from the Namespace Page
+•	Navigate to the Namespaces page.
+•	Click the Create button.
+•	A new, empty namespace will be created.
+•	Templates can later be added to this namespace as needed.
+•	Every namespace that we create will be automatically added to the namespace dropdown while creating the Corpora template.
+ 
+Using the ‘Default’ Namespace Option During Corpora Template Creation
+•	When creating a Corpora template, selecting the Default option in the namespace dropdown will automatically create a namespace using the current template name as the namespace name.
+•	This is useful for quickly generating a one-to-one mapping between a template and its corresponding namespace.
+ 
+Back to Index
+Directives
+In both the UI and SVC endpoints, prompts support directives.
+Directives will customize the behavior and parameters of backend service calls to the LLM. They are defined at the model level but can be overridden within a template.
+Directive Format:
+[[directive_name=value]]
+Directive Types:
+•	Model Directives
+•	Custom Directives
+Back to Index
+Model Directives
+These parameters are passed to the LLM and define behavior:
+GPT Model Directives
+1.	max_tokens: Sets the maximum tokens in a response.
+•	Specifies the maximum number of tokens to generate in the response. Tokens can be as short as one character or as long as one word.
+Example: [[max_tokens=150]]
+2.	temperature (temp): Controls the randomness of the response. Lower values make the output more deterministic and focused, while higher values increase variability and creativity.
+Example: [[temp=0.7]] or [[temperature=0.7]]
+3.	response_format: Defines the format in which the response is generated. This can be plain text, JSON, or other formats depending on the API's capabilities.
+•	Note : Need to surround with double quote around value for response_format.
+Example:
+•	[[response_format="{\"type\": \"text\"}"]]
+•	[[response_format="{\"type\": \"json_object\"}"]]
+•	[[response_format={"type":"json_schema","json_schema":{"name":"math_response","strict":true,"schema":{"type":"object","properties":{"steps":{"type":"array","items":{"type":"object","properties":{"explanation":{"type":"string"},"output":{"type":"string"}},"required":["explanation","output"],"additionalProperties":false}}},"required":["steps"],"additionalProperties":false}}}]]
+4.	model: Specifies the model to use for generating responses. Different models have varying capabilities, sizes, and performance characteristics. This overrides even the model specified at runtime or the model defined in the JSON itself. The model directive provided in the template prompt takes the highest precedence above all.
+Example: [[model=gpt-4o-mini]]
+Back to Index
+Custom Directives
+Custom directives are internal commands used to modify templates or retrieve external data. At runtime, each directive is replaced with the corresponding output generated by its associated action. These directives are defined and managed within our system. They are primarily used for internal operations such as updating template content or fetching data from a URL to populate sections of the template dynamically .
+Types of Custom Directives
+URL_GET
+Fetches data from a URL via GET request.
+Example: [[URL_GET=http://example.com/fetchdata]]
+EMBED_TEMPLATE
+Includes one template within another; execution fails if the template is missing.
+Syntax: [[EMBED_TEMPLATE="{"template":"template_name","fallback" : "fallback_template_name_1, fallback_template_name_3"}"]]
+Example: [[EMBED_TEMPLATE="{"template":"{{Variable_1}}","fallback" : "{{Variable_2}}, {{Variable_3}}"}"]]
+Note: Variable_1, Variable_2, and Variable_3 are parameter names that serve as template names provided during template testing.
+EMBED_TEMPLATE_NOFAIL:
+Embeds a template without failing if the template is missing.
+Syntax: [[EMBED_TEMPLATE_NOFAIL="{"template":"template_name","fallback" : "fallback_template_name_1, fallback_template_name_3"}"]]
+Example: [[EMBED_TEMPLATE_NOFAIL="{"template":"{{Variable_1}}","fallback" : "{{Variable_2}}, {{Variable_3}}"}"]]
+Note: Variable_1, Variable_2, and Variable_3 are parameter names that serve as template names provided during template testing.
+Back to Index
+[[SYSTEM]] prompt directive
+If we pass the prompt like below, it will be sent using the system role of the LLM call as shown below:
+Prompt:
+[[SYSTEM]]
+you are an helpful assistant on market analyst
+[[/SYSTEM]]
+[[SYSTEM]]
+you are an helpful assistant on market 2nd analyst
+[[/SYSTEM]]
+What are the sales of pepsi and Coke in walmart over the last 20 years
+Sample prompt payload passed in the LLM Request:
+[{'role': 'system', 'content': 'you are an helpful assistant on market analyst'}, {'role': 'system', 'content': 'you are an helpful assistant on market 2nd analyst'}, {'role': 'user', 'content': 'what is the sales of pepsi and coke in walmart last 20 years'}].
+Back to Index
+EMBED_TEMPLATE_VECTOR
+This is similar to an embed template, but this takes the vectorized value of the mentioned template for processing.
+Syntax: [[EMBED_TEMPLATE_VECTOR="{"template":"template_name","prompt":"user_prompt","resultcount":{{Count}},"similarity_threshold":{{Thershold_value}}, "fallback":"fallback_template_name"}"]]
+Example: [[EMBED_TEMPLATE_VECTOR="{"template":"Test_GSK_MARKET_ADVANTAGE_Products.txt","prompt":"This is a test sentence","resultcount":5,"similarity_threshold":0.1, "fallback":"vector_Products.txt"}"]]
+EMBED_TEMPLATE_VECTOR_NOFAIL
+This runs and passes the test successfully, even if there is no template or a fallback one, as mentioned.
+Syntax: 
+[[EMBED_TEMPLATE_VECTOR_NOFAIL="{"template":"template_name","prompt":"user_prompt","resultcount":{{Count}},"similarity_threshold":{{Thershold_value}}, "fallback":"fallback_template_name"}"]]
+Example:
+[[EMBED_TEMPLATE_VECTOR_NOFAIL="{"template":"Test_GSK_MARKET_ADVANTAGE_Products.txt","prompt":"This is a test","resultcount":5,"similarity_threshold":0.1, "fallback":"vector_Products.txt"}"]]
+Note: Directives are case-sensitive and should be used exactly as defined.
+Back to Index
+EMBED_NAMESPACE_VECTOR
+This is similar to an Embed template vector, but this takes the vectorized value of all the templates under a particular Namespace for processing.
+You can provide either the namespace name or the namespace UUID using the same key, namespace.
+Syntax: [[EMBED_NAMESPACE_VECTOR="{"namespace":"namespace_name","prompt":"user_prompt","resultcount":{{Count}},"similarity_threshold":{{Thershold_value}}}","is_manifest_search":true]]
+Example: [[EMBED_NAMESPACE_VECTOR="{"namespace":"55ce93fd-112a-4e2b-932b-ba0d2f1ebb54","prompt":"{{query}}","resultcount":4,"similarity_threshold":0.1,"is_manifest_search":true}"]]
+OR
+[[EMBED_NAMESPACE_VECTOR="{"namespace":"","prompt":"{{query}}","resultcount":4,"similarity_threshold":0.1,"is_manifest_search":true}"]]
+The UUID can be derived from the collection ID of the existing namespace, which is available in the UI as shown below.
+ 
+We need to remove the ns_ prefix and replace the underscores (_) with hyphens (-).
+Example:
+Collection ID: ns_55ce93fd_112a_4e2b_932b_ba0d2f1ebb54
+Namespace ID: 55ce93fd-112a-4e2b-932b-ba0d2f1ebb54
+To improve relevance and retrieval accuracy, we introduced a new boolean flag:
+is_manifest_search = True / False
+This flag enables the discovery and ranking of semantic corpora using manifest templates.
+When this flag is set to False (default), embedding occurs as it normally does.
+When this flag is set to True, the directive analyzes the input prompt using manifest templates and dynamically determines the most relevant corpora instead of relying on a single predefined corpus.
+When this flag is enabled, a predefined template named SearchManifestByUserQuery is executed every time. This template evaluates all related manifest templates and returns an array of selected manifests, which are then used for the actual search.
+Example: "content": "\n[\n {\n \"corpora_name\": \"Fashion_Search\",\n \"namespace_name\": \"search_manifest\",\n \"namespace_uuid\": \"ns_f37c37ee-8379-4f22-85b2-0bee408cb9c6\"\n }\n]\n",
+Only the manifests in this array will be used to retrieve data for the source template in which the embed directive is used.
+Reranking:
+Reranking is the process of re-evaluating and reordering a set of results that an initial search or retrieval model previously retrieved. The re-rank key can be set to true to activate this feature; it is set to false by default. This option is available for both EMBED_TEMPLATE_VECTOR and EMBED_NAMESPACE_VECTOR.
+Sample:
+[[EMBED_NAMESPACE_VECTOR="{"namespace":"{{c}}","prompt":"{{sentence}}","resultcount":100,"similarity_threshold":0.3,"re_rank":true}"]]
+'k' parameter:
+The k parameter (often written as top-k) defines the number of candidates that are considered or retained at a given step. The k key can be configured to activate this parameter, and it is available for both EMBED_TEMPLATE_VECTOR and EMBED_NAMESPACE_VECTOR. This option is accessible only when the re-rank feature is enabled.
+Sample:
+[[EMBED_NAMESPACE_VECTOR="{"namespace":"{{c}}","prompt":"{{sentence}}","resultcount":100,"similarity_threshold":0.3,"re_rank":true,”k”:25}"]]
+Back to Index
+EMBED_TEMPLATE_CHAIN (PARALLEL EXECUTION)
+This is a directive where we will pass a sequence of templates that conducts a step-by-step process for constructing a JSON response using a combination of static and dynamic variable assignments.
+Syntax:
+[[EMBED_TEMPLATE_CHAIN=”[“template1”],[“template2”],[“template3”,”template4”,”template5”],[“template6”,”template7”],[“template8”]”]]
+Sample:
+[[EMBED_TEMPLATE_CHAIN="["chain fast_intent"],["chain entity_product","chain entity_geography"],["fast_pos_measure_identifier.txt"]"]]
+Each array (group) is executed sequentially, meaning the next array will start only after the previous array has completed.
+The bootstrap template (the template containing the EMBED Directive) initializes the execution.
+Its parameters are passed to the first array of templates.
+After each array completes:
+All variables returned from those templates are merged with the existing parameter set.
+The combined parameters are passed to the next array.
+If multiple templates exist in the next array, the full accumulated parameter set is passed to all of them.
+Within each array, the templates are executed in parallel, meaning all templates in that group run simultaneously.
+Example:
+This is the bootstrap template
+ 
+The variables are passed to the first template as shown below
+        {
+            "sentence": "where were sales of advil highest",
+            "unify_tenant": "CL1",
+            "AS_MODEL": "TSV_WB"
+        }
+The bootstrap template then runs with the following variables.
+ 
+When this execution is completed for the first template in the array, the variables obtained from the response will be submitted as the payload—along with the existing variables—to the next array.
+The response for the first template is shown below.
+      "content": [
+        {
+          "annotations": [],
+          "text": "{\"intents\":[\"topngeog\"],\"statement\":\"Looks like you want to see where sales of Advil were highest across retailers or geographies.\",\"continue\":\"yes\",\"runEntity\":\"true\",\"runReport\":\"true\",\"dataset\":\"POS\",\"entities\":[\"advil\",\"sales\"],\"restart\":true,\"vf\":\"false\",\"sortby\":\"Current\",\"basis_measure\":\"sales\",\"why\":\"User asks where sales were highest, indicating a top geography intent for sales.\",\"AS_MODEL\":\"TSV_WB\"}",
+          "type": "output_text",
+          "logprobs": []
+        }
+      ]
+The payload for the next template is as follows, where all the variables are included.
+ 
+Note that all templates must respond in JSON format.
+If multiple templates are included in an array, then the variables from the previous array will be passed to all the templates in this array for execution.
+If multiple templates within an array return the same variables in their responses, the variables from the last executed template will be passed to the next array.
+Here is the screenshot of the execution statistics after the execution of the bootstrap template is completed.
+ 
+Note: Directives are case-sensitive and should be used exactly as defined.
+Back to Index
+TEMPLATE EXECUTION
+Once a template is created, hover over the respective template to see the hover menu.
+ 
+Cache: Clicking this will open a pop-up displaying cache results for executions. Each time a unique template runs, its details are recorded under a cache hash key, and all execution cache data for that template is displayed here.
+Edit: This option opens the edit dialog, similar to the Create option, but with all values retained. The user can modify any option, and the changes will be submitted as a new version under "Versions." The user can also switch between versions by setting them as the active one.
+Test: This is where the actual execution takes place. When you click "Test," the Test Template pop-up will open, providing a dropdown to select a model. Once a model is selected, click "Submit" to proceed.
+ 
+Once you hit submit, the template will run, and the response will be shown along with the prompt and sample HTTP request as shown:
+  
+Back to Index
+Tool functions:
+Implemented end-to-end support for tool execution within the chatbot flow, ensuring that tool results are passed back to the LLM and the final response is streamed to the user.
+•	User asks a question.
+•	LLM detects the need for a tool invocation based on the user query.
+•	The system executes the required tool (external function).
+•	Tool results are passed back to the LLM, allowing the model to continue reasoning.
+•	The LLM generates the final polished answer, incorporating the tool output.
+•	The entire response is streamed, ensuring a smooth and real-time chatbot experience.
+To create one, navigate to the Tool function menu on the left pane and click on the ‘Create’ button.
+ 
+Tool Name: Name of the tool
+Tool URL (POST): URL of the function call (should be in POST method)
+Sample: https://advantageqa2.iriworldwide.com/alerts-dev/services/alerts/fetchJSONLinesForQuery
+Description: Provide the description related to product information, sales information, or top brands, to execute this function.
+Parameter Key: Name of the Parameter
+Parameter Type: Either it could be a string or a number
+Description: Based on this description, the param keys' respective value from the prompt or user input will be extracted.
+Required: This field specifies which parameters must always be included when calling the function.
+Additional Properties: 
+In Tools (function definitions), additionalProperties is used to indicate whether the function can accept extra fields beyond those explicitly defined in the schema.
+Purpose of additionalProperties in Tool Functions
+When defining a tool/function schema:
+•	additionalProperties: false
+→ The model is not allowed to send any extra parameters other than what you explicitly defined.
+→ This is strict validation and helps avoid mistakes or unexpected inputs.
+•	additionalProperties: true
+→ The model can send extra fields that are not defined in the schema.
+→ Useful when your function may need dynamic or optional parameters not known beforehand.
+Best Practices:
+•	There is no token limit for the description, but it is recommended to keep it short.
+•	The description should be 2–3 lines, explaining what the function does so the model knows when to call it.
+•	We should not provide complex prompts; if we do, the model may become confused about when to use the tools.
+•	We can also include example instructions that explain the purpose of the function.
+Back to Index
+MCP SERVER
+It is a stateless MCP server that allows an LLM to securely execute external domain APIs through dynamically configured tools. It acts as a controlled bridge between the LLM and external APIs.
+ 
+In our current system. We have two types of MCP Servers available.
+1.	LLM_MESH_MCP_SERVER (which is our own custom MCP server)
+2.	Public MCP Server.
+LLM_MESH_MCP_SERVER
+This LLM_MESH_MCP_SERVER is non-editable. Here, the user can select only the allowed tools parameter that we configured on the Tools function page.
+ 
+Parameters
+•	Tool name: MCP Server name
+•	Tools URL: Public URL of the MCP server
+•	Description: Description tells what the MCP Server will do.
+•	Required Approval: Define user permissions before sharing any data with the MCP Server
+•	Allowed tools: We can select one or more tools which we will invoke from the function tools, get parameters of those tools, and map them tothe  execute_function_tool tool present inside the MCP server. Basically, LLM will be forced to use the selected tools
+Code Working Logic Overview
+1. MCP Server Initialization
+The system initializes a FastMCP server with a specific server name.
+It also creates a reusable asynchronous HTTP client to make external API calls.This MCP server exposes tools that the LLM can invoke.
+2. MCP Server Tool
+There are two main tools exposed:
+•	get_custom_data → Executes a direct API call.
+•	execute_function_tool → Dynamically executes one or more tools defined in the allowed tools.
+When the LLM triggers a tool:
+1.	The request reaches the MCP server.
+2.	The payload is normalized.
+3.	The system processes the request based on the selected tool.
+4. Tool Execution Flow (Dynamic Execution)
+When execute_function_tool is called:
+Step 1: Load Server Configuration
+The system:
+•	Connects to the database.
+•	Loads the MCP server configuration.
+•	Retrieves the list of allowed tools.
+•	Uses Redis cache if available to avoid repeated DB queries.
+Step 2: Loop Through Allowed Tools
+For each allowed tool:
+•	Load its configuration (from Redis or DB).
+•	Build the API payload.
+•	Call the external API.
+Step 4: Process API Response
+•	If the response is valid JSON → return it.
+•	If string formatting flag is enabled → format report data into structured text.
+Step 5: Aggregate Results
+All tool responses are collected and returned as a single structured response back to the LLM.
+5. Direct API Tool Flow
+When get_custom_data is used:
+1.	Payload is normalized.
+2.	External API is called directly.
+3.	Response is processed.
+4.	Result is returned.
+6. Authentication Handling
+If a user ID is provided:
+•	The system retrieves a token.
+•	The token is added as a cookie in the API request.
+•	This allows secure user-specific API execution.
+The LLM does not manage authentication — the backend handles it.
+7. Redis Caching
+The system caches:
+•	MCP server configuration
+•	Individual tool configuration
+If data exists in Redis:
+•	It is returned immediately.
+If not:
+•	It is fetched from the database.
+•	Stored in Redis for future use.
+This reduces latency and improves performance.
+Public MCP Server 
+Here, In the public MCP server user just need to enter the details of the particular public MCP Server and click on submit.
+ 
+Invoking MCP Tool From Template
+To invoke the MCP tool, users need to mention the MCP directive inside the template. 
+Syntax : [[EMBED_MCP_TOOL="["LLM_MESH_MCP_SERVER"]"]]
+In the backend, It will be pulled as json and passed to LLM. which helps LLM to use MCP TOOL
+Example: 
+[
+{
+   "type": "mcp",
+   "server_url": "https://analytics-dev.iriworldwide.com/llmadmin/api/llmadmin/api/llm_mesh_mcp_server/mcp",
+   "server_label": "LLM_MESH_MCP_SERVER",
+   "allowed_tools": [
+     "report_runner"
+   ],
+   "require_approval": "never",
+   "server_description": "Returns domain-specific relevant data for a given query by hitting the custom LLM MESH MCP SERVER API..."
+ }
+]
+External endpoint service:
+The external Service endpoint is specifically designed to invoke SVC endpoints and other endpoints required for other external services.
+svc-gettemplate
+Fetch the given template details
+GET Request
+QA URL : https://analytics-qa.iriworldwide.com/llmadmin/api/svc-gettemplate?guid={guid}
+PROD URL : https://advantage.iriworldwide.com/llm-template-admin-api/svc-gettemplate?guid={guid}
+svc-savetemplate
+Save template
+POST Request
+QA URL: https://analytics-qa.iriworldwide.com/llmadmin/api/svc-savetemplate
+PROD URL : https://advantage.iriworldwide.com/llm-template-admin-api/svc-savetemplate
+Request Body:{
+"guid": "test_vec6",
+"templateText": "sample code in {{language}}",
+"can_vectorized": false,
+"template_type": 0,
+"created_by": "string"
+}
+Please find the template_type details at the bottom of this page.
+template_type and created_by are optional properties.
+can_vectorized is an Optional parameter that defaults to false. Vectorized files will be created if it is true.
+NOTE :
+We can obtain the template_type using the endpoint below, which can then be used to create templates with the desired template types.
+QA URL :
+https://analytics-qa.iriworldwide.com/llmadmin/api/llmTemplateTypes
+PROD URL:
+https://advantage.iriworldwide.com/llm-template-admin-api/llmTemplateTypes
+Sample Response of list of template_types:
+{
+"code": 1,
+"message": "Operation completed successfully.",
+"result": [
+{
+"id": 1,
+"template_type": "Default",
+"created_by": null,
+"created_at": null
+},
+{
+"id": 2,
+"template_type": "BW AI Node",
+"created_by": null,
+"created_at": null
+},
+]
+}
+svc-deletetemplate
+Delete template with given template name.
+DELETE Request
+QA URL : https://analytics-qa.iriworldwide.com/llmadmin/api/svc-deletetemplate?guid={guid}
+PROD URL : https://advantage.iriworldwide.com/llm-template-admin-api/svc-deletetemplate?guid={guid}
+svc-templatestats
+Fetch template with given template name with its execution details
+GET REQUEST
+QA URL : https://analytics-qa.iriworldwide.com/llmadmin/api/svc-templatestats?templateFile={template_name}
+PROD URL : https://advantage.iriworldwide.com/llm-template-admin-api/svc-templatestats?templateFile={template_name}
+svc-all-templatestats-db
+Fetch all templates with their execution details
+GET REQUEST
+QA URL: https://analytics-qa.iriworldwide.com/llmadmin/api/svc-all-templatestats-db
+PROD URL: https://advantage.iriworldwide.com/llm-template-admin-api/svc-all-templatestats-db
+getEmiriImage
+Display image of given image key
+GET REQUEST
+QA URL : https://analytics-qa.iriworldwide.com/llmadmin/api/getEmiriImage?imagekey={imageKey}
+PROD URL :https://advantage.iriworldwide.com/llm-template-admin-api/getEmiriImage?imagekey={imageKey}
+Back to Index
+svc-gettemplate-by-namespace
+This retrieves all the templates under a particular namespace.
+GET REQUEST
+Parameters:
+namespace_name (string): Name of the namespace
+ld_service_url: This is an optional parameter. If the template is shared under a specific LD service URL, it can be specified here. If the LD service URL is invalid, no results will be returned.
+Sample Response:
+[
+{
+"template_type": 1,
+"template_name": "[\"BLLM-431\"]",
+"created_by": "unifyqa32",
+"created_at": "2025-12-10T12:39:00.351563",
+"is_soft_deleted": false,
+"modified_by": null,
+"modified_at": "2025-12-10T12:39:00.351565",
+"can_vectorized": true,
+"size": 356.45,
+"template_uuid": "25fa2057-4220-495a-a7cd-f4ead0838b64",
+"active": true,
+"file_path": "/uploads/56b13595-9241-4c14-83c3-99ca2a419612_PepsiCo (1).pdf",
+"file_name": "PepsiCo (1).pdf",
+"file_type": null,
+"notes": null,
+"progress": 100,
+"status": "completed",
+"users": null,
+"groups": null
+}
+]
+Back to Index
+svc-download
+This will download the attachment based on the file path provided, which is returned by the above endpoint.
+GET REQUEST
+Parameter: File Path
+Sample: /uploads/0e0c48e0-b358-4ca5-a73d-1e0c05642cc0_PepsiCo.pdf
+A download link will appear as the response.
+svc-namespace-list
+This endpoint retrieves all the available namespaces. No Params required.
+[
+{
+"namespace_id": "e6745c26-5350-4091-9462-7fa63ae7adff",
+"name": "vector_Products.txt",
+"created_by": null,
+"modified_by": null,
+"is_deleted": false,
+"template_vector_type_id": 3,
+"description": null,
+"created_at": "2025-08-26T09:14:06.047781",
+"modified_at": "2025-08-26T09:14:06.047781",
+"is_default": 2487
+},
+{
+"namespace_id": "d2a4e859-cc50-4fd6-9662-004b247c5564",
+"name": "Nofail_check",
+"created_by": null,
+"modified_by": null,
+"is_deleted": false,
+"template_vector_type_id": 3,
+"description": null,
+"created_at": "2025-08-26T09:28:19.387226",
+"modified_at": "2025-08-26T09:28:19.387226",
+"is_default": 3066
+},
+.....
+Back to Index
+svc-save-corpora-template
+This endpoint is used to create a corpora template.
+POST REQUEST
+Content type - Multi-part form request
+Parameters:
+File: The file to be attached.
+namespaces: List of namespaces. You can provide either a single namespace or multiple namespaces in the following format: "[\"Namespace_1\",\"Namespace_2\"]".
+Alternatively, you can provide the UUID of an existing namespace instead of the namespace name. The UUID can be derived from the collection ID of the existing namespace, which is available in the UI as shown below.
+ 
+We need to remove the ns_ prefix and replace the underscores (_) with hyphens (-).
+Example:
+Collection ID: ns_55ce93fd_112a_4e2b_932b_ba0d2f1ebb54
+Namespace ID: 55ce93fd-112a-4e2b-932b-ba0d2f1ebb54
+Format: "[\"ab1b5bfb-8ae2-4ddd-80ec-112b4cbca67d\"]"
+Note: If any specified namespace does not exist, the system will create a new namespace under default settings with Quadrant as the vector type.
+is_required_manifest (boolean): If set to true, manifest templates will be created. If set to false, no manifest templates will be generated.
+name: Name of the Template
+users: ID of the user(s). Sample: "[\"User1\",\"User2\"]" – Optional
+groups: id of the group(s). Sample: "[\"130211\"]" – Optional.
+service_url: ld-service URL
+notes: Acts as file description.
+chunk_size (integer): Chunk size for Quadrant
+chunk_overlap (integer): Chunk Overlap for Quadrant
+is_line_chunking (boolean): It is set to true by default, which means line chunking is enabled. If set to false, character chunking will be enabled, and the chunk_size and chunk_overlap parameters will apply to character-based chunking.
+is_auto_chunking (boolean): Enables auto-chunking when set to true. When enabled, the line chunk size and overlap values will be ignored.
+is_org_shared (boolean): Shares the template with all users under the current organization.
+template_type (string): An existing template type can be provided. If the specified template type does not exist, a new one will be created.
+generate_descriptor (boolean): When this flag is set to true, the descriptors will be added to the corpora.
+More information about the descriptors can be found here:
+https://circana.atlassian.net/wiki/spaces/Brainwave/pages/467566608/LLM-Admin+Template+Management+System#Descriptors
+created_by (optional): If not provided by the user, the system will automatically extract the user_id from the authentication token. If a user_id is explicitly specified, the template’s created_by field will be set to the provided ID.
+In case of this update endpoint, if created_by is provided, the version’s created_by field will be set to the specified user_id.
+effective_date (date): Used to set the effective date.
+expiration_date (date): Used to set the expiration date.
+Effective Date and Expiration:
+These fields define the validity window for the Corpora Template. The Corpora will be considered applicable and used in the response only if the current date falls within the specified effective date and expiration date range.
+If the current date is outside this range, the Corpora Template will not be retrieved. Instead of causing a failure, the system will return an empty value, which will be substituted into the prompt where the embeds were used. This ensures the overall execution continues smoothly without errors, even when no valid content is available for the given time period.
+is_archived (boolean): If this flag is set to true, the template will be automatically moved to the Archives and will not be used for any executions.
+Note: If a template expires naturally, it will be moved to the archives.
+Sample Response: 
+{
+  "success": true,
+  "result": {
+    "code": 1,
+    "type": "success",
+    "message": {
+      "template_type": 219,
+      "template_name": "Test_Template_1",
+      "template_uuid": "7dc12cd8-11c1-459e-b656-f0533efa9bb1",
+      "template_file": "",
+      "version_id": 41605,
+      "can_vectorized": true,
+      "notes": null,
+      "tags": null,
+      "created_by": "Reg_user",
+      "created_at": "2026-03-31T18:16:26.352650",
+      "is_active": null,
+      "scheduler_status": null,
+      "scheduler_result": null,
+      "is_soft_deleted": false,
+      "modified_by": null,
+      "modified_at": "2026-03-31T18:16:26.352654",
+      "template_content_type": "FILE",
+      "file_path": "/uploads/7b34105c-a5b6-4cd2-a253-3285abab019e_PepsiCo.pdf",
+      "file_name": "PepsiCo.pdf",
+      "file_type": null,
+      "chunk_size": null,
+      "chunk_overlap": null,
+      "template_namespace_ids": [
+        2045
+      ],
+      "template_namespace_names": "Test_Namespace_1",
+      "template_vector_type_id": 3,
+      "size": 356.45,
+      "template_vector_name": null,
+      "users": [],
+      "groups": [],
+      "is_locked": false,
+      "is_public": false,
+      "is_manifest": false,
+      "is_line_chunking": true,
+      "service_url": null,
+      "active": true,
+      "progress": null,
+      "template_type_name": null,
+      "namespace": null,
+      "vector_type": "Quadrant",
+      "is_auto_chunking": true,
+      "auto_chunk_metadata": null,
+      "is_max_line_chunking": false,
+      "max_lines_per_chunk": 20,
+      "is_delimited_chunking": false,
+      "delimiter_key": "",
+      "is_org_shared": false,
+      "organization_name": "Analytics_QA",
+      "job_id": null,
+      "generate_descriptor": false,
+      "descriptor_summary": null,
+      "effective_date": null,
+      "expiration_date": null,
+      "is_archived": false,
+      "is_required_manifest": true
+    },
+    "guid": "Test_Template_1",
+    "flag": false,
+    "template_uuid": null
+  }
+}
+svc-save-corpora-template/{template_uuid}
+This endpoint is used to update a corpora template.
+POST REQUEST
+Content type - Multi-part form request
+Parameters:
+template_uuid (string): Corpora template uuid
+File: The new file to be replaced.
+Namespaces: List of namespaces. You can provide either a single namespace or multiple namespaces in the following format: ["one","two","three"].
+Alternatively, you can provide the UUID of an existing namespace instead of the namespace name. The UUID can be derived from the collection ID of the existing namespace, which is available in the UI as shown below.
+ 
+We need to remove the ns_ prefix and replace the underscores (_) with hyphens (-).
+Example:
+Collection ID: ns_55ce93fd_112a_4e2b_932b_ba0d2f1ebb54
+Namespace ID: 55ce93fd-112a-4e2b-932b-ba0d2f1ebb54
+Format: "[\"ab1b5bfb-8ae2-4ddd-80ec-112b4cbca67d\"]"
+name (string): Edited name of the Template – Optional
+users (string): id of the user(s). Sample: "[\"User1\",\"User2\"]" – Optional
+groups (string): id of the group(s). Sample: "[\"130211\"]" – Optional. Note: The user and group data will be stored in a new table named llm_template_shares. If the existing user and group details are changed, the system will replace the old ones with the current user/group.
+service_url: ld-service URL
+active (boolean): Updates the active flag value. Based on this flag, the corpora will be set to active or inactive during execution.
+notes (string): Acts as file description.
+chunk_size (integer): Chunk size for Quadrant
+chunk_overlap (integer): Chunk Overlap for Quadrant
+is_line_chunking (boolean): It is set to true by default, which means line chunking is enabled. If set to false, character chunking will be enabled, and the chunk_size and chunk_overlap parameters will apply to character-based chunking.
+is_auto_chunking (boolean): Enables auto-chunking when set to true. When enabled, the line chunk size and overlap values will be ignored.
+is_org_shared (boolean): Shares the template with all users under the current organization.
+template_type (string): An existing template type can be provided. If the specified template type does not exist, a new one will be created.
+generate_descriptor (boolean): When this flag is set to true, the descriptors will be added to the corpora.
+More information about the descriptors can be found here:
+https://circana.atlassian.net/wiki/spaces/Brainwave/pages/467566608/LLM-Admin+Template+Management+System#Descriptors
+created_by (optional): If not provided by the user, the system will automatically extract the user_id from the authentication token. If a user_id is explicitly specified, the template’s created_by field will be set to the provided ID.
+In case of this update endpoint, if created_by is provided, the version’s created_by field will be set to the specified user_id.
+effective_date (date): Used to set the effective date.
+expiration_date (date): Used to set the expiration date.
+Effective Date and Expiration:
+These fields define the validity window for the Corpora Template. The Corpora will be considered applicable and used in the response only if the current date falls within the specified effective date and expiration date range.
+If the current date is outside this range, the Corpora Template will not be retrieved. Instead of causing a failure, the system will return an empty value, which will be substituted into the prompt where the embeds were used. This ensures the overall execution continues smoothly without errors, even when no valid content is available for the given time period.
+is_archived (boolean): If this flag is set to true, the template will be automatically moved to the Archives and will not be used for any executions.
+Note: If a template expires naturally, it will be moved to the archives.
+Sample Response:
+{
+  "success": true,
+  "result": {
+    "code": 1,
+    "type": "success",
+    "message": {
+      "template_type": 219,
+      "template_name": "Test_Template_134",
+      "template_uuid": "11aa7a48-30e5-4328-af2f-a7d0a3f918be",
+      "template_file": "",
+      "version_id": 41613,
+      "can_vectorized": true,
+      "notes": null,
+      "tags": null,
+      "created_by": "Reg_user",
+      "created_at": "2026-03-31T18:31:18.708208",
+      "is_active": null,
+      "scheduler_status": null,
+      "scheduler_result": null,
+      "is_soft_deleted": false,
+      "modified_by": null,
+      "modified_at": "2026-03-31T18:31:18.708211",
+      "template_content_type": "FILE",
+      "file_path": "/uploads/4d4d307a-fc55-46bd-95f8-5b4f3293225e_PepsiCo.pdf",
+      "file_name": "PepsiCo.pdf",
+      "file_type": null,
+      "chunk_size": 800,
+      "chunk_overlap": 100,
+      "template_namespace_ids": [
+        2045
+      ],
+      "template_namespace_names": "Test_Namespace_1",
+      "template_vector_type_id": 3,
+      "size": 356.45,
+      "template_vector_name": null,
+      "users": [],
+      "groups": [],
+      "is_locked": false,
+      "is_public": false,
+      "is_manifest": false,
+      "is_line_chunking": true,
+      "service_url": null,
+      "active": true,
+      "progress": null,
+      "template_type_name": null,
+      "namespace": null,
+      "vector_type": "Quadrant",
+      "is_auto_chunking": true,
+      "auto_chunk_metadata": {
+        "chunk_type": "character",
+        "chunk_size": 800,
+        "chunk_overlap": 100,
+        "boundary": false,
+        "chunks": [],
+        "generatedFile": ""
+      },
+      "is_max_line_chunking": false,
+      "max_lines_per_chunk": 20,
+      "is_delimited_chunking": false,
+      "delimiter_key": "",
+      "is_org_shared": false,
+      "organization_name": "Analytics_QA",
+      "job_id": null,
+      "generate_descriptor": false,
+      "descriptor_summary": null,
+      "effective_date": "2026-03-24T00:00:00",
+      "expiration_date": "2026-04-30T00:00:00",
+      "is_archived": false,
+      "is_required_manifest": null
+    },
+    "guid": "Test_Template_134",
+    "flag": false,
+    "template_uuid": null
+  }
+}
+svc-delete-corpora-template
+This endpoint is used to delete a corpora template.
+Parameter: template_uuid
+svc-search-namespace
+Method: POST
+This endpoint will retrieve only the raw embeddings from Qdrant that are available in all corpora templates under a specific namespace.
+If the user needs embeddings only for specific templates under a namespace, they can pass the names of those templates in the ‘Corpus’ array.
+Sample payload:
+{
+  "namespace": "21af261f-d538-46d4-aa19-fe1bd280f9ed",
+  "corpus": [
+    "Eff_check_M11"
+  ],
+  "sentence": "level",
+  "similarity": 0.2,
+  "resultcount": 50,
+  "asJSON": true,
+  "re_rank": false,
+  "is_manifest_search": false
+}
+Sample Response:
+{
+  "code": 1,
+  "message": "Operation completed successfully.",
+  "result": {
+    "result": [
+      "Standard",
+      "Plains - Standard - Conv",
+      "Great Lakes - Standard - Conv",
+      "Plains - Standard - Multi Outlet",
+      "Plains - Standard - Multi Outlet+",
+      "Plains - Standard - Multi Outlet+ with Conv",
+      "Plains - Standard - Food/Conv",
+      "States",
+      "Plains - Standard - Food",
+      "Southeast - Standard - Conv",
+      "Plains - Standard - Multi Outlet with Conv",
+      "Northeast - Standard - Conv",
+      "West - Standard - Conv",
+      "Plains - Standard - Multi Outlet+ E-Commerce",
+      "Markets",
+      "Mid-South - Standard - Conv",
+      "Plains - Standard - Multi Outlet+ Brick & Mortar",
+      "West - Standard - Food/Conv",
+      "South Central - Standard - Conv",
+      "West - Standard - Food",
+      "CRMA ~ retailer",
+      "Northeast - Standard Total - Conv",
+      "Great Lakes - Standard - Food",
+      "Mountain - US Census Bureau Division - Multi Outlet+ with Conv",
+      "Mountain - US Census Bureau Division - Multi Outlet+",
+      "South - Standard Total - Conv",
+      "Great Lakes - Standard - Food/Conv",
+      "West - Standard - Multi Outlet",
+      "Mountain - US Census Bureau Division - Multi Outlet",
+      "California - Standard - Conv",
+      "South - Standard Total - Multi Outlet",
+      "North Central - Standard Total - Conv",
+      "Western - Standard Total - Conv",
+      "Mountain - US Census Bureau Division - Multi Outlet with Conv",
+      "Mountain - US Census Bureau Division - Conv"
+    ]
+  }
+}
+Parameters:
+namespace_name (string): Name of the namespace
+corpus: Array of Templates - [“Template1”,”Template2”,”Template3”] - If an invalid template name is provided, or if a template does not belong to the namespace, the system will skip it.
+sentence: user query
+similarity: Used to control accuracy. Typically ranges between 0.1 and 1.0.
+resultcount: 50 - Total number of records to fetched
+asJSON: If set to true, the system will return JSON. Otherwise, the response will be a string
+svc-search-geography-namespace
+Method: POST
+This endpoint will retrieve embeddings along with the metadata from Qdrant (only for the Geography templates that were created from the Emiri config tool) that are available in all corpora templates under a specific namespace.
+If the user needs embeddings only for specific templates under a namespace, they can pass the names of those templates in the ‘Corpus’ array.
+Sample payload:
+{
+  "namespace": "21af261f-d538-46d4-aa19-fe1bd280f9ed",
+  "corpus": [
+    "Eff_check_M11"
+  ],
+  "sentence": "level",
+  "similarity": 0.2,
+  "resultcount": 50,
+  "asJSON": true,
+  "re_rank": false,
+  "is_manifest_search": false
+}
+Sample Response:
+{
+  "code": 1,
+  "message": "Operation completed successfully.",
+  "result": {
+    "result": [
+      {
+        "text": "Standard",
+        "level": "level1",
+        "id": ":Level 1:83611350"
+      },
+      {
+        "text": "Plains - Standard - Conv",
+        "level": "level2",
+        "id": ":Level 3:83609389"
+      },
+      {
+        "text": "Great Lakes - Standard - Conv",
+        "level": "level2",
+        "id": ":Level 3:83609351"
+      },
+      {
+        "text": "Plains - Standard - Multi Outlet",
+        "level": "level2",
+        "id": ":Level 3:83609833"
+      },
+      {
+        "text": "Plains - Standard - Multi Outlet+",
+        "level": "level2",
+        "id": ":Level 3:83613753"
+      },
+      {
+        "text": "Plains - Standard - Multi Outlet+ with Conv",
+        "level": "level2",
+        "id": ":Level 3:83613752"
+      },
+      {
+        "text": "Plains - Standard - Food/Conv",
+        "level": "level2",
+        "id": ":Level 3:83610230"
+      },
+      {
+        "text": "States",
+        "level": "level1",
+        "id": ":Level 1:82354450"
+      },
+      {
+        "text": "Plains - Standard - Food",
+        "level": "level2",
+        "id": ":Level 3:83609040"
+      },
+      {
+        "text": "Southeast - Standard - Conv",
+        "level": "level2",
+        "id": ":Level 3:83609390"
+      },
+      {
+        "text": "Plains - Standard - Multi Outlet with Conv",
+        "level": "level2",
+        "id": ":Level 3:83610232"
+      },
+      {
+        "text": "Northeast - Standard - Conv",
+        "level": "level2",
+        "id": ":Level 3:83609331"
+      },
+      {
+        "text": "West - Standard - Conv",
+        "level": "level2",
+        "id": ":Level 3:83609369"
+      },
+      {
+        "text": "Plains - Standard - Multi Outlet+ E-Commerce",
+        "level": "level2",
+        "id": ":Level 3:84278207"
+      },
+      {
+        "text": "Markets",
+        "level": "level1",
+        "id": ":Level 1:82354460"
+      },
+      {
+        "text": "Mid-South - Standard - Conv",
+        "level": "level2",
+        "id": ":Level 3:83609370"
+      },
+      {
+        "text": "Plains - Standard - Multi Outlet+ Brick & Mortar",
+        "level": "level2",
+        "id": ":Level 3:84278196"
+      },
+      {
+        "text": "West - Standard - Food/Conv",
+        "level": "level2",
+        "id": ":Level 3:83610287"
+      },
+      {
+        "text": "South Central - Standard - Conv",
+        "level": "level2",
+        "id": ":Level 3:83609330"
+      },
+      {
+        "text": "West - Standard - Food",
+        "level": "level2",
+        "id": ":Level 3:83609039"
+      },
+      {
+        "text": "CRMA ~ retailer",
+        "level": "level1",
+        "id": ":Level 1:83611395"
+      },
+      {
+        "text": "Northeast - Standard Total - Conv",
+        "level": "level2",
+        "id": ":Level 3:83609337"
+      },
+      {
+        "text": "Great Lakes - Standard - Food",
+        "level": "level2",
+        "id": ":Level 3:83609042"
+      },
+      {
+        "text": "Mountain - US Census Bureau Division - Multi Outlet+ with Conv",
+        "level": "level2",
+        "id": ":Level 3:83614722"
+      },
+      {
+        "text": "Mountain - US Census Bureau Division - Multi Outlet+",
+        "level": "level2",
+        "id": ":Level 3:83614723"
+      },
+      {
+        "text": "South - Standard Total - Conv",
+        "level": "level2",
+        "id": ":Level 3:83609357"
+      },
+      {
+        "text": "Great Lakes - Standard - Food/Conv",
+        "level": "level2",
+        "id": ":Level 3:83610267"
+      },
+      {
+        "text": "West - Standard - Multi Outlet",
+        "level": "level2",
+        "id": ":Level 3:83609847"
+      },
+      {
+        "text": "Mountain - US Census Bureau Division - Multi Outlet",
+        "level": "level2",
+        "id": ":Level 3:83611215"
+      },
+      {
+        "text": "California - Standard - Conv",
+        "level": "level2",
+        "id": ":Level 3:83609350"
+      },
+      {
+        "text": "South - Standard Total - Multi Outlet",
+        "level": "level2",
+        "id": ":Level 3:83609849"
+      },
+      {
+        "text": "North Central - Standard Total - Conv",
+        "level": "level2",
+        "id": ":Level 3:83609375"
+      },
+      {
+        "text": "Western - Standard Total - Conv",
+        "level": "level2",
+        "id": ":Level 3:83609377"
+      },
+      {
+        "text": "Mountain - US Census Bureau Division - Multi Outlet with Conv",
+        "level": "level2",
+        "id": ":Level 3:83613442"
+      },
+      {
+        "text": "Mountain - US Census Bureau Division - Conv",
+        "level": "level2",
+        "id": ":Level 3:83613386"
+      }
+    ]
+  }
+}
+Parameters:
+namespace_name (string): Name of the namespace
+corpus: Array of Templates - [“Template1”,”Template2”,”Template3”] - If an invalid template name is provided, or if a template does not belong to the namespace, the system will skip it.
+sentence: user query
+similarity: Used to control accuracy. Typically ranges between 0.1 and 1.0.
+resultcount: 50 - Total number of records to fetched
+asJSON: If set to true, the system will return JSON. Otherwise, the response will be a string
+svc-bulk-search-namespace
+Method: POST
+This endpoint will retrieve only the raw embeddings from Qdrant that are available in all corpora templates under a specific namespace. The difference between the previous endpoint and this one is that multiple prompts can be provided for the same corpora template under a namespace. Here, Corpora is not an array; instead, a search_requests array is used, which can handle prompts in bulk, as shown below.
+Sample Payload:
+{
+  "namespace_name": "string",
+  "search_requests": [
+    {
+      "corpora": "corpora1",
+      "query": "Query 1",
+      "result_count": 0,
+      "similarity_threshold": 0
+    },
+    {
+      "corpora": "corpora1",
+      "query": "Query 2",
+      "result_count": 0,
+      "similarity_threshold": 0
+    },
+    {
+      "corpora": "corpora1",
+      "query": "Query 3",
+      "result_count": 0,
+      "similarity_threshold": 0
+    }
+  ]
+}
+Parameters:
+namespace_name (string): Name of the namespace
+search_requests (Array of search requests under same namespace):
+corpora: Name of the corpora template- “Template1”- If an invalid template name is provided, or if a template does not belong to the namespace, the system will skip it.
+query: user query
+result_count: 50 - Total number of records to fetched
+similarity_threshold: Used to control accuracy. Typically ranges between 0.1 and 1.0.
+svc-bulk-search-namespace
+Method: GET
+No parameters required
+This endpoint will retrieve all templates from the Templates page and the Corpora page. The response will include the following data:
+{
+  "code": 1,
+  "message": "Operation completed successfully.",
+  "result": [
+    {
+      "template_id": 2886,
+      "template_type": 30,
+      "template_name": "Summit_Demo-UNILEVER_MARKET_ADVANTAGE_Hierarchies",
+      "template_uuid": "33b247bb-4e56-4446-b60d-06935dd41511"
+    },
+    {
+      "template_id": 2905,
+      "template_type": 31,
+      "template_name": "Tools_check",
+      "template_uuid": "1cd9e73e-8d48-421d-8e5e-6f3a215fc2cb"
+    },...
+Back to Index
+________________________________________
+Regression Test Suite Creation
+This section outlines the test cases designed to validate the functionality, performance, and reliability of Prompt Regression Testing.
+Navigate to Regression testing from the Left pane and Hit Create.
+ 
+In the name section, enter the name of the test case. The model would be automatically set to ‘gpt-4-turbo ‘ and we can change it later on as desired using the dropdown.
+ 
+The output type toggle is used to change the type of the result based on the template. It could be either a Text or a Json.
+ 
+The Prompt Source toggle is used to either choose a Template that already exists or create a Manual input.
+If the toggle is set to Manual, a Text box will appear where we will enter the Input prompt.
+ 
+If the toggle is set to Template, a dropdown will appear with a list of all templates available.
+ 
+In the ‘Cases’ menu, there are 3 options.
+The case Id would be generated by default with an unique identifier. We can later change this to any desired Id.
+ 
+If there were parameters available in the selected template, we would need to pass them in a Json format.
+ 
+For example, in the template Reworder.txt, the variables would be as follows:
+------------------
+{
+"locale": "en-US",
+"sentences": "Even though the weather was bad, we decided to go hiking because we had already planned the trip weeks in advance."
+}
+------------------
+ 
+In this case, the result would be of type Json. So we need to set the Output type toggle to Json and the Expected output should be as follows:
+------------------
+{
+"results": [
+{
+"original_sentence": "Even though the weather was bad, we decided to go hiking because we had already planned the trip weeks in advance.",
+"new_sentence": "Despite the bad weather, we went hiking as planned weeks ago."
+}
+]
+}
+------------------
+This step is common for both Manual/Template selection. The complete setup would look like this:
+  
+We can also add multiple cases by using the add button at the end.
+ 
+Once we hit submit, an entry will be created with the model, created at and updated at timestamps. Note: The updated at timestamp would be using the created at time on the first time of creation.
+ 
+When we hover on to a test case, the hover prompts will include, ‘Edit’, ‘Run’ and ‘Run History’ buttons./svc-gettemplate-by-namespace: This retrieves all the templa
+ 
+We can edit the test case, make any necessary changes, and saveit. Once we hit the Run button, the ‘Run Test Suite’ page will be opened where all the test cases will be listed with the respective id’s and Run button will be available on the Top.
+ 
+Initially the status would be Idle.
+Once we hit the run button, the status will change to ‘In Progress’ and the system will start to execute the template with provided variables and compares the result with Deterministic comparison technique and Semantic similarity analysis.
+After completion, the status will change to Success/Failure based on the Execution.
+If the result is Success, there will be a ‘Show comparison’ button appearing before the Run button as shown below.
+ 
+When we click on the ‘Show Comparison’ button and then click on the accordion on the desired Id, the ‘Result Diff’ would appear with the similarity score and a table which has the Expected results and Outcome.
+ 
+We we hit the back button, the system navigates to the Run History page, where we could see all the results listed. When you hover on any of those, we will have the show results button to take you the respective page.
+Endpoint: POST /promptRegression/testCases
+QA URL: https://analytics-qa.iriworldwide.com/llmadmin/api/
+FASTAPI URL: https://analytics-qa.iriworldwide.com/llmadmin/api/docs#/
+Sample Payload:
+{
+    "model": "gpt-4-turbo",
+    "is_json": true,
+    "use_template": true,
+    "prompt": "",
+    "source_template_id": 34,
+    "name": "Reg_2",
+    "tolerance_level": 0.8,
+    "cases": [
+        {
+            "expected_output": "{     \"results\": [         {             \"original_sentence\": \"Converted sentence\",             \"new_sentence\": \"الجملة المحولة\"         }     ] }",
+            "input_parameter": "{   \"model\": \"gpt-4o\",   \"config\": {     \"templateName\": \"reworder.txt\",     \"variables\": {       \"temp value\": \"0.8\",       \"locale\": \"AR\",       \"sentences\": \"Converted sentence\"     }   } }",
+            "id": "20b4ce03"
+        }
+    ],
+    "is_concurrent": false
+}
+Notes:
+•	Model Selection:
+Use any available model from the following endpoint:
+GET /providerModels/models
+In the JSON response, use the value of the model_name key as the model input.
+•	is_json:
+When set to true, the output will be returned in JSON format. If false, the output will be plain text.
+•	use_template:
+Indicates whether to use a template during execution. Set to true to include a template.
+•	prompt:
+Used when not using a template. Allows manual input of the prompt.
+•	source_template_id:
+Refers to the ID of the template selected from the UI. This template will be used for the test suite.
+•	name:
+Specifies the name of the test suite being created.
+•	tolerance_level:
+A threshold used to determine pass/fail status for a test case. If the result value is below this threshold, the case is marked as failed.
+•	cases:
+Each case includes:
+o	expected_output: The expected result.
+o	input_parameter: The input to be tested.
+o	id: A unique identifier for the case. This ID must be unique across all existing and new cases.
+•	is_concurrent:
+Determines whether the test cases should be executed in parallel.
+o	When set to true, all cases will run concurrently.
+o	When set to false, cases will execute sequentially, one after another.
+________________________________________
+Endpoint: GET /promptRegression/check_test_suite_exists/{test_suite_name}
+This endpoint is used to check whether a test suite exists.
+•	If the test suite exists, the response will be:
+{
+  "code": 1,
+  "message": "Test Suite already exists",
+  "result": {
+    "already_exists": true
+  }
+}
+ 
+•	If the test suite does not exist, the response will be:
+{
+  "code": 1,
+  "message": "Test Suite does not exist",
+  "result": {
+    "already_exists": false
+  }
+}
+________________________________________
+Endpoint: GET /promptRegression/insert_test_case/{test_suite_name}
+•	 The test suite name must be an existing one.
+Sample Payload:
+[
+  {
+    "expected_output": "{\"results\": [{\"original_sentence\": \"This is a test\", \"new_sentence\": \"This is a trial\"}]}",
+    "input_parameter": "{\"model\": \"gpt-4-turbo\", \"config\": {\"templateName\": \"reworder.txt\", \"variables\": {\"temp value\": \"0.8\", \"locale\": \"en-us\", \"sentences\": \"This is a test\"}}}",
+    "id": "a1b2c3test",
+    "status": null,
+    "last_executed_at": null
+  }
+]
+Notes:
+•	expected_output:
+The expected output must be provided based on the type selected in the existing      suite (text/JSON). If 'text' is selected on the suite, provide a string; if 'JSON' is selected, provide a formatted output as shown above.
+•	input_parameter:
+This is the input payload used when running a template. You can view it under the 'Modify Payload' option in the UI while executing a template.
+•	expected_output:
+The ‘id’ field is used to provide the unique id for the case.
+•	status:
+The status and last_executed_at keys are optional and can be null.
+Back to Index
+________________________________________
+Provider Execution
+•	POST Request
+•	Dev URL : http://10.63.129.39/llmadmin/api/llm/execution
+•	Prod URL : https://advantage.iriworldwide.com/llm-template-admin-api/llm/execution
+•	The payload to execute varies based on the provider. Below are the currently available providers.
+•	GPT Model Provider :
+o	Please find the sample payload.
+o	{
+"config": {
+"templateName": "template_name",
+"variables": {
+"topic": "topic"
+}
+},
+"model": "gpt-4-0125-preview",
+"useCache": true,
+"asyncrun": false,
+"cacheAge": 30
+}
+•	Image Provider:
+o	Please find the sample payload.
+•	{
+"config": {
+"format": "b64_json",
+"prompt": "prompt_to generate_image",
+"size": "1024x1024",
+"resizePercentage": "0.50"
+},
+"model": "dall-e-3",
+"useCache": true,
+"asyncrun": false,
+"cacheAge": 30
+}
+•	Google Search Provider:
+o	Please find the sample payload.
+o	{
+"config": {
+"t": "today’s highlight in cricket"
+},
+"model": "model",
+"useCache": true,
+"asyncrun": false,
+"cacheAge": 30
+}
+•	Gnews Provider :
+o	Please find the sample payload.
+o	{
+"config": {
+"gPrompt": "today’s highlight in cricket"
+},
+"model": "model",
+"useCache": true,
+"asyncrun": false,
+"cacheAge": 30
+}
+•	Vanilla Provider:
+o	Please find the sample payload.
+o	{
+"config": {
+"templateName": "templateName",
+"prompt": "Sample prompt"
+},
+"model": "model",
+"useCache": true,
+"asyncrun": false,
+"cacheAge": 30
+}
+NOTE :
+1.	transaction_id - Optional query param, which will be useful when execution is made async and to monitor the status of the async execution call.
+2.	useCache:
+1.	true - Response will be fetched from cached data if available.
+2.	false - Execute the prompt without checking the cached data.
+3.	cacheAge - An Optional Param, used to know the validity of cached data and represented in days. The default value is 30.
+4.	asyncrun - Execution will happen in the background. 
+Sample response when asyncrun is true :
+o	{
+"code": 0,
+"result": "5017d62065fd4876b326464f9b0b0b0c",
+"key": null,
+"execution_time": null,
+"model_execution_time": null,
+"execution_started_at": null,
+"execution_ended_at": "2024-09-23 09:26:42.033570+00:00"
+}
+o	Value from the “result” property in the above sample is used to monitor the status of the async execution. Invoke the below endpoint with “result” value as transactionId
+o	http://10.63.129.39/llmadmin/api/llm/execution?transactionId=5017d62065fd4876b326464f9b0b0b0c
+	Sample response for the above endpoint if the transaction is completed.
+	{
+"code": 1,
+"result": {
+"completed": true,
+"error": false,
+"outcome": "some sample response”
+},
+"key": null,
+"execution_time": 4,
+"model_execution_time": null,
+"execution_started_at": "2024-09-23 09:48:18.728348+00:00",
+"execution_ended_at": "2024-09-23 09:48:22.982404+00:00"
+}
+5.	model - The model varies based on the provider. Use the below endpoint to get all the model details.
+o	DEV URL : http://10.63.129.39/llmadmin/api/providerModel/models
+o	Sample response:
+	{
+"code": 1,
+"message": "Operation completed successfully.",
+"result": [
+{
+"model_id": 1,
+"provider_id": 1,
+"model_name": "gpt-4o"
+}
+]
+}
+________________________________________
+Back to Index
+Run multiple prompts in parallel
+Request Type: Post
+Dev URL:
+https://analytics-qa.iriworldwide.com/llmadmin/api/llm/execution/parallel
+Prod URL:
+https://advantage.iriworldwide.com/llm-template-admin-api/llm/execution/parallel
+ 
+The sample input payload for the request is as follows.
+{
+"executionList": [
+{
+"uuid": "1",
+"model": "gpt-4o",
+"config": {
+"templateName": "Demo",
+"variables": {
+"data": "java"
+}
+},
+"useCache": false
+},
+{
+"uuid": "2",
+"config": {
+"format": "png",
+"prompt": "Create an image of hacker",
+"size": "1024x1024"
+},
+"model": "dall-e-3",
+"useCache": false,
+"asyncrun": false,
+"cacheAge": 30
+}
+]
+}
+ 
+ 
+ 
+The sample response for the given input payload:
+{
+"code": 1,
+"message": "Operation completed successfully.",
+"result": [
+{
+"code": 1,
+"result": "It seems like you're asking for a code snippet related to a specific topic or technology, but the placeholder `{data}` is unclear. Could you please specify the programming language or the type of data or functionality you're interested in? For example, are you looking for a code snippet in Python for data analysis, JavaScript for web development, or something else? Let me know so I can assist you better!",
+"key": "a7c21cf12829394a3b50c18df9c1b53d992e9d8064f3025b0e29a7fc6dfb88ed",
+"execution_time": 4.643731,
+"model_execution_time": 2,
+"request_execution_time": 0,
+"thread_start_delay": 0.056982,
+"execution_entry_delay": 0,
+"execution_started_at": "2025-02-10 10:03:31.801974+00:00",
+"execution_ended_at": "2025-02-10 10:03:36.451163+00:00",
+"worker_id": ":1936",
+"uuid": "1"
+},
+{
+"code": 1,
+"result": {
+"url": "api/getEmiriImage?imagekey=6adca8e9ebbe2ce04b2ac9e3412535797efb28e0355c44416ba66a9811b5bf20",
+"executionTime": 0
+},
+"key": "6adca8e9ebbe2ce04b2ac9e3412535797efb28e0355c44416ba66a9811b5bf20",
+"execution_time": 21.133314,
+"model_execution_time": 17,
+"request_execution_time": 0,
+"thread_start_delay": 0.004721,
+"execution_entry_delay": 0,
+"execution_started_at": "2025-02-10 10:03:31.792230+00:00",
+"execution_ended_at": "2025-02-10 10:03:52.929600+00:00",
+"worker_id": ":1936",
+"uuid": "2"
+}
+]
+}
+NOTE:
+1.	executionList - It is an array of the current payload, with each element representing a request payload intended to execute a prompt.
+2.	useCache:
+•	true - Response will be fetched from cached data if available.
+•	false - Execute the prompt without checking the cached data.
+1.	cacheAge - An Optional Param, used to know the validity of cached data and represented in days. The default value is 30.
+2.	asyncrun - Execution will happen in the background.
+Sample response when asyncrun is true :
+{
+"code": 0,
+"result": "3c876f7782bf4fa38682fea99f755a40",
+"key": null,
+"execution_time": null,
+"model_execution_time": null,
+"request_execution_time": null,
+"thread_start_delay": null,
+"execution_entry_delay": null,
+"execution_started_at": null,
+"execution_ended_at": "2025-02-10 10:08:01.029273+00:00",
+"worker_id": ":1936",
+"uuid": null
+}
+•	Value from the “result” property in the above sample is used to monitor the status of the async execution. Invoke the below endpoint with “result” value as transactionId
+•	https://analytics-qa.iriworldwide.com/llmadmin/api/llm/execution?transactionId=3c876f7782bf4fa38682fea99f755a40
+o	Sample response for the above endpoint if the transaction is completed.
+{
+"code": 1,
+"result": {
+"completed": true,
+"error": false,
+"outcome": "some response"
+},
+"key": null,
+"execution_time": 1,
+"model_execution_time": 1,
+"request_execution_time": null,
+"thread_start_delay": null,
+"execution_entry_delay": null,
+"execution_started_at": "2025-02-10 11:44:10.464687+00:00",
+"execution_ended_at": "2025-02-10 11:44:10.508806+00:00",
+"worker_id": null,
+"uuid": null
+}
+•	model - The model varies based on the provider. Use the below endpoint to get all the model details.
+o	Dev URL : https://analytics-qa.iriworldwide.com/llmadmin/api/providerModel/models
+o	Sample response:
+	{
+"code": 1,
+"message": "Operation completed successfully.",
+"result": [
+{
+"model_id": 1,
+"provider_id": 1,
+"model_name": "gpt-4o"
+}
+]
+}
+Back to Index
+________________________________________
+Execution Endpoint - API SECRETS
+To create an API secret key, click on the API Secrets menu in the left pane, then click Create.
+ 
+ 
+ 
+Enter a name for the key and set an expiry date. This can be modified at any time.
+ 
+The value of the key will be auto-assigned and can be copied using the copy button next to it.
+ 
+ 
+ 
+You can also set a key to inactive status by using the Change Status button in the hover menu for each key.
+ 
+Once you have obtained the key, add an Authorization header using the following format: ‘Bearer’ followed by a space and then the key.
+Example: Bearer aashLBljlBLJBljbLJBLJblbLJBHGVkhvks
+ 
+Upload the raw JSON as the request body and hit the execution endpoint from Postman.
+ 
+ 
+A response will be returned only if a valid auth token is provided. If an invalid auth token is used, the system will return an 'Unauthorized' error.
+ 
+ 
+Back to Index
+

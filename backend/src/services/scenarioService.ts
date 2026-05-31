@@ -1,8 +1,6 @@
-import Anthropic from '@anthropic-ai/sdk';
+import { buildPrompt, executeVanillaPrompt } from './llmMeshClient';
 import { getScenarioPlayer, getAllGates } from './missionSpec';
 import { appendScenarioAct, completeScenario, updateScenarioStatus } from '../db/queries';
-
-const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
 
 type SubmissionRow = Record<string, unknown>;
 
@@ -86,25 +84,12 @@ export async function generateScenario(
     .replace(/\{\{outcome_type\}\}/g, outcomeType);
 
   try {
-    let buffer = '';
-    const stream = anthropic.messages.stream({
-      model: 'claude-haiku-4-5',
-      max_tokens: 3000,
-      messages: [{ role: 'user', content: prompt }],
+    const meshPrompt = buildPrompt({
+      userContent: prompt,
+      directives: ['[[max_tokens=3000]]'],
     });
 
-    for await (const event of stream) {
-      if (
-        event.type === 'content_block_delta' &&
-        event.delta.type === 'text_delta'
-      ) {
-        buffer += event.delta.text;
-
-        // Try to extract complete acts from the buffer as they arrive
-        // Expecting JSON array: [{act_number, act_title, prose}, ...]
-        // We parse acts as complete objects appear
-      }
-    }
+    const buffer = await executeVanillaPrompt(meshPrompt);
 
     // Full response received — parse and store all acts
     const jsonMatch = buffer.match(/\[[\s\S]*\]/);
