@@ -1,8 +1,6 @@
-import Anthropic from '@anthropic-ai/sdk';
+import { buildPrompt, executeVanillaPrompt } from './llmMeshClient';
 import { getGate, getMission } from './missionSpec';
 import { updateSubmissionEvaluation } from '../db/queries';
-
-const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
 
 interface TeamInfo {
   id: string;
@@ -62,21 +60,17 @@ Artifact submitted:
 ${JSON.stringify(artifact, null, 2)}`;
 
   try {
-    const response = await anthropic.messages.create({
-      model: 'claude-haiku-4-5',
-      max_tokens: 1024,
-      system: systemPrompt,
-      messages: [{ role: 'user', content: userPrompt }],
+    const prompt = buildPrompt({
+      systemContent: systemPrompt,
+      userContent: userPrompt,
+      directives: [`[[response_format="{\\"type\\": \\"json_object\\"}"]]`, '[[max_tokens=1024]]'],
     });
 
-    const rawText = response.content
-      .filter((b) => b.type === 'text')
-      .map((b) => (b as { type: 'text'; text: string }).text)
-      .join('');
+    const rawText = await executeVanillaPrompt(prompt);
 
     // Extract JSON from the response (handle markdown code fences)
     const jsonMatch = rawText.match(/\{[\s\S]*\}/);
-    if (!jsonMatch) throw new Error('No JSON found in Claude response');
+    if (!jsonMatch) throw new Error('No JSON found in LLM response');
 
     const parsed = JSON.parse(jsonMatch[0]) as {
       quality_signals: Record<string, unknown>;
@@ -127,17 +121,13 @@ Rules:
 - If a field is not present in the text, omit it from the JSON (do not return null or empty string).
 - Keep values concise — do not pad or rephrase beyond what the text provides.`;
 
-  const response = await anthropic.messages.create({
-    model: 'claude-haiku-4-5',
-    max_tokens: 512,
-    system: systemPrompt,
-    messages: [{ role: 'user', content: step3Output }],
+  const prompt = buildPrompt({
+    systemContent: systemPrompt,
+    userContent: step3Output,
+    directives: [`[[response_format="{\\"type\\": \\"json_object\\"}"]]`, '[[max_tokens=512]]'],
   });
 
-  const rawText = response.content
-    .filter((b) => b.type === 'text')
-    .map((b) => (b as { type: 'text'; text: string }).text)
-    .join('');
+  const rawText = await executeVanillaPrompt(prompt);
 
   const jsonMatch = rawText.match(/\{[\s\S]*\}/);
   if (!jsonMatch) throw new Error('No JSON found in extraction response');

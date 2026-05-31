@@ -1,14 +1,10 @@
 "use strict";
-var __importDefault = (this && this.__importDefault) || function (mod) {
-    return (mod && mod.__esModule) ? mod : { "default": mod };
-};
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.evaluateGate = evaluateGate;
 exports.extractDossierFields = extractDossierFields;
-const sdk_1 = __importDefault(require("@anthropic-ai/sdk"));
+const llmMeshClient_1 = require("./llmMeshClient");
 const missionSpec_1 = require("./missionSpec");
 const queries_1 = require("../db/queries");
-const anthropic = new sdk_1.default({ apiKey: process.env.ANTHROPIC_API_KEY });
 async function evaluateGate(submissionId, gateNumber, artifact, team) {
     const gate = (0, missionSpec_1.getGate)(gateNumber);
     const mission = (0, missionSpec_1.getMission)();
@@ -51,20 +47,16 @@ Gate: ${gateNumber} — ${gate.name}
 Artifact submitted:
 ${JSON.stringify(artifact, null, 2)}`;
     try {
-        const response = await anthropic.messages.create({
-            model: 'claude-haiku-4-5',
-            max_tokens: 1024,
-            system: systemPrompt,
-            messages: [{ role: 'user', content: userPrompt }],
+        const prompt = (0, llmMeshClient_1.buildPrompt)({
+            systemContent: systemPrompt,
+            userContent: userPrompt,
+            directives: [`[[response_format="{\\"type\\": \\"json_object\\"}"]]`, '[[max_tokens=1024]]'],
         });
-        const rawText = response.content
-            .filter((b) => b.type === 'text')
-            .map((b) => b.text)
-            .join('');
+        const rawText = await (0, llmMeshClient_1.executeVanillaPrompt)(prompt);
         // Extract JSON from the response (handle markdown code fences)
         const jsonMatch = rawText.match(/\{[\s\S]*\}/);
         if (!jsonMatch)
-            throw new Error('No JSON found in Claude response');
+            throw new Error('No JSON found in LLM response');
         const parsed = JSON.parse(jsonMatch[0]);
         await (0, queries_1.updateSubmissionEvaluation)(submissionId, parsed.quality_signals, parsed.feedback_text, 'complete');
     }
@@ -89,16 +81,12 @@ Rules:
 - Return only the JSON object. No preamble, no commentary.
 - If a field is not present in the text, omit it from the JSON (do not return null or empty string).
 - Keep values concise — do not pad or rephrase beyond what the text provides.`;
-    const response = await anthropic.messages.create({
-        model: 'claude-haiku-4-5',
-        max_tokens: 512,
-        system: systemPrompt,
-        messages: [{ role: 'user', content: step3Output }],
+    const prompt = (0, llmMeshClient_1.buildPrompt)({
+        systemContent: systemPrompt,
+        userContent: step3Output,
+        directives: [`[[response_format="{\\"type\\": \\"json_object\\"}"]]`, '[[max_tokens=512]]'],
     });
-    const rawText = response.content
-        .filter((b) => b.type === 'text')
-        .map((b) => b.text)
-        .join('');
+    const rawText = await (0, llmMeshClient_1.executeVanillaPrompt)(prompt);
     const jsonMatch = rawText.match(/\{[\s\S]*\}/);
     if (!jsonMatch)
         throw new Error('No JSON found in extraction response');

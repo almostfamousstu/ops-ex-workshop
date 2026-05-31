@@ -1,0 +1,450 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Nimbus Cloud — Sign In</title>
+<style>
+  :root {
+    --brand: #1763e9;
+    --brand-dark: #0b3c95;
+    --ink: #16202c;
+    --muted: #5b6b7b;
+    --line: #d9e1ea;
+    --bg: #f4f7fb;
+    --field: #ffffff;
+    --ok: #1aa463;
+    --err: #d92d20;
+  }
+
+  * { box-sizing: border-box; }
+
+  html, body {
+    margin: 0;
+    height: 100%;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    color: var(--ink);
+    background: var(--bg);
+  }
+
+  /* ---------- Layout ---------- */
+  .stage {
+    min-height: 100%;
+    display: grid;
+    grid-template-columns: 1.05fr 0.95fr;
+  }
+  @media (max-width: 880px) {
+    .stage { grid-template-columns: 1fr; }
+    .promo { display: none; }
+  }
+
+  /* ---------- Promo side ---------- */
+  .promo {
+    position: relative;
+    overflow: hidden;
+    background:
+      radial-gradient(1200px 600px at 80% -10%, rgba(255,255,255,.18), transparent 60%),
+      linear-gradient(150deg, var(--brand) 0%, var(--brand-dark) 100%);
+    color: #fff;
+    padding: 56px 64px;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+  }
+  .promo::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background-image:
+      radial-gradient(circle at 18% 78%, rgba(255,255,255,.10) 0 2px, transparent 3px),
+      radial-gradient(circle at 70% 30%, rgba(255,255,255,.08) 0 2px, transparent 3px);
+    background-size: 46px 46px, 64px 64px;
+    pointer-events: none;
+  }
+  .promo .logo { display: flex; align-items: center; gap: 12px; font-weight: 700; font-size: 20px; letter-spacing: .2px; }
+  .promo .logo .mark {
+    width: 34px; height: 34px; border-radius: 9px;
+    background: #fff;
+    display: grid; place-items: center;
+    color: var(--brand); font-weight: 800;
+  }
+  .promo .pitch { position: relative; z-index: 1; max-width: 460px; }
+  .promo .pitch h1 { font-size: 38px; line-height: 1.12; margin: 0 0 16px; font-weight: 700; }
+  .promo .pitch p { font-size: 16px; line-height: 1.6; color: rgba(255,255,255,.86); margin: 0; }
+  .promo .stats { display: flex; gap: 40px; position: relative; z-index: 1; }
+  .promo .stats .n { font-size: 26px; font-weight: 700; }
+  .promo .stats .l { font-size: 13px; color: rgba(255,255,255,.75); }
+
+  /* ---------- Form side ---------- */
+  .panel {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 40px 24px;
+  }
+  .card {
+    width: 100%;
+    max-width: 380px;
+  }
+  .card h2 { font-size: 26px; margin: 0 0 6px; }
+  .card .sub { color: var(--muted); margin: 0 0 28px; font-size: 14px; }
+
+  .field { margin-bottom: 18px; }
+  .field label { display: block; font-size: 13px; font-weight: 600; margin-bottom: 7px; color: #2b3a48; }
+  .field input {
+    width: 100%;
+    padding: 12px 14px;
+    font-size: 15px;
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    background: var(--field);
+    color: var(--ink);
+    transition: border-color .15s, box-shadow .15s;
+  }
+  .field input:focus {
+    outline: none;
+    border-color: var(--brand);
+    box-shadow: 0 0 0 3px rgba(23,99,233,.15);
+  }
+  .row { display: flex; align-items: center; justify-content: space-between; margin-bottom: 24px; font-size: 13px; }
+  .row label { display: flex; align-items: center; gap: 8px; color: var(--muted); cursor: pointer; }
+  .row a { color: var(--brand); text-decoration: none; font-weight: 600; }
+  .row a:hover { text-decoration: underline; }
+
+  .btn {
+    width: 100%;
+    padding: 13px;
+    font-size: 15px;
+    font-weight: 600;
+    color: #fff;
+    background: var(--brand);
+    border: none;
+    border-radius: 10px;
+    cursor: pointer;
+    transition: background .15s, transform .05s;
+  }
+  .btn:hover { background: var(--brand-dark); }
+  .btn:active { transform: translateY(1px); }
+
+  .divider { display: flex; align-items: center; gap: 14px; color: var(--muted); font-size: 13px; margin: 24px 0; }
+  .divider::before, .divider::after { content: ""; height: 1px; background: var(--line); flex: 1; }
+
+  .sso { width: 100%; padding: 12px; font-size: 14px; font-weight: 600; color: var(--ink);
+    background: #fff; border: 1px solid var(--line); border-radius: 10px; cursor: pointer;
+    display: flex; align-items: center; justify-content: center; gap: 10px; }
+  .sso:hover { background: #f7f9fc; }
+
+  .signup { text-align: center; margin-top: 28px; font-size: 14px; color: var(--muted); }
+  .signup a { color: var(--brand); font-weight: 600; text-decoration: none; }
+
+  .hint { font-size: 11px; color: #9aa7b4; text-align: center; margin-top: 18px; }
+
+  .msg { font-size: 13px; margin-top: -8px; margin-bottom: 16px; min-height: 18px; color: var(--err); }
+
+  /* ============ EASTER EGG: HACK / GLITCH ============ */
+  #fx {
+    position: fixed;
+    inset: 0;
+    z-index: 9999;
+    pointer-events: none;
+    display: none;
+  }
+  #fx.on { display: block; }
+
+  /* shaking applied to whole document */
+  body.glitching { animation: quake .12s steps(2) infinite; }
+  @keyframes quake {
+    0%   { transform: translate(0,0); }
+    25%  { transform: translate(-4px, 3px); }
+    50%  { transform: translate(5px, -2px); }
+    75%  { transform: translate(-3px, -4px); }
+    100% { transform: translate(2px, 4px); }
+  }
+
+  /* RGB split overlay clones */
+  .ghost {
+    position: fixed; inset: 0; z-index: 9998;
+    pointer-events: none; display: none;
+    mix-blend-mode: screen;
+    opacity: .0;
+  }
+  body.glitching .ghost { display: block; }
+  .ghost.r { animation: shiftR .25s steps(3) infinite; }
+  .ghost.b { animation: shiftB .31s steps(3) infinite; }
+  @keyframes shiftR { 0%,100%{ transform:translate(0,0);} 50%{ transform:translate(6px,-3px);} }
+  @keyframes shiftB { 0%,100%{ transform:translate(0,0);} 50%{ transform:translate(-7px,4px);} }
+
+  /* scanlines + noise */
+  .scan {
+    position: fixed; inset: 0; z-index: 10000; pointer-events: none; display: none;
+    background:
+      repeating-linear-gradient(
+        to bottom,
+        rgba(0,0,0,0) 0px,
+        rgba(0,0,0,0) 2px,
+        rgba(0,0,0,.18) 3px,
+        rgba(0,0,0,0) 4px
+      );
+    animation: rollscan 6s linear infinite;
+  }
+  body.glitching .scan { display: block; }
+  @keyframes rollscan { from { background-position-y: 0; } to { background-position-y: 100px; } }
+
+  /* terminal takeover */
+  #terminal {
+    position: fixed; inset: 0; z-index: 10001;
+    background: #020403;
+    color: #36ff6b;
+    font-family: "SF Mono", "Cascadia Code", Consolas, "Courier New", monospace;
+    font-size: 15px;
+    line-height: 1.5;
+    padding: 40px 44px;
+    display: none;
+    overflow: hidden;
+    text-shadow: 0 0 6px rgba(54,255,107,.65);
+  }
+  #terminal.on { display: block; }
+  #terminal .line { white-space: pre-wrap; }
+  #terminal .warn { color: #ff4d4d; text-shadow: 0 0 6px rgba(255,77,77,.7); }
+  #terminal .big {
+    margin-top: 26px;
+    font-size: clamp(34px, 8vw, 92px);
+    font-weight: 800;
+    letter-spacing: 4px;
+    color: #ff2d2d;
+    text-shadow: 0 0 14px rgba(255,45,45,.8);
+  }
+  #terminal .cursor {
+    display: inline-block; width: 9px; height: 18px; background: #36ff6b;
+    margin-left: 2px; vertical-align: -3px; animation: blink 1s steps(2) infinite;
+  }
+  @keyframes blink { 50% { opacity: 0; } }
+
+  #terminal.glitchtext { animation: tglitch .15s steps(2) infinite; }
+  @keyframes tglitch { 0%{ transform:translate(0,0);} 50%{ transform:translate(-3px,2px);} 100%{ transform:translate(2px,-2px);} }
+
+  /* final crash screen */
+  #crash {
+    position: fixed; inset: 0; z-index: 10002;
+    background: #0a3a8c;
+    color: #fff;
+    display: none;
+    flex-direction: column;
+    justify-content: center;
+    padding: 0 12% 0 12%;
+    font-family: "Segoe UI", -apple-system, sans-serif;
+  }
+  #crash.on { display: flex; }
+  #crash .sad { font-size: 96px; font-weight: 300; margin-bottom: 24px; }
+  #crash h3 { font-size: 30px; font-weight: 400; line-height: 1.35; margin: 0 0 26px; max-width: 760px; }
+  #crash .pct { font-size: 19px; margin-bottom: 30px; }
+  #crash .meta { font-size: 14px; opacity: .85; line-height: 1.6; }
+  #crash .qr { width: 96px; height: 96px; margin-top: 22px;
+    background:
+      conic-gradient(#fff 25%, #0a3a8c 0 50%, #fff 0 75%, #0a3a8c 0) 0 0/16px 16px;
+    border: 6px solid #fff; }
+
+  /* white flash */
+  #flash {
+    position: fixed; inset: 0; z-index: 10003; background: #fff;
+    opacity: 0; pointer-events: none; display: none;
+  }
+  #flash.fire { display: block; animation: flashfire .5s ease-out forwards; }
+  @keyframes flashfire { 0%{opacity:0;} 12%{opacity:1;} 100%{opacity:0;} }
+</style>
+</head>
+<body>
+
+  <div class="stage" id="stage">
+    <!-- Promo / brand side -->
+    <aside class="promo">
+      <div class="logo"><span class="mark">N</span> Nimbus Cloud</div>
+      <div class="pitch">
+        <h1>Run your whole business in one place.</h1>
+        <p>CRM, analytics, and automation trusted by over 150,000 teams worldwide. Welcome back — let's get to work.</p>
+      </div>
+      <div class="stats">
+        <div><div class="n">150k+</div><div class="l">Companies</div></div>
+        <div><div class="n">99.99%</div><div class="l">Uptime</div></div>
+        <div><div class="n">24/7</div><div class="l">Support</div></div>
+      </div>
+    </aside>
+
+    <!-- Form side -->
+    <main class="panel">
+      <form class="card" id="loginForm" autocomplete="off">
+        <h2>Sign in to Nimbus</h2>
+        <p class="sub">Enter your credentials to access your workspace.</p>
+
+        <div class="field">
+          <label for="userid">User ID</label>
+          <input id="userid" name="userid" type="text" placeholder="you@company.com" />
+        </div>
+
+        <div class="field">
+          <label for="pw">Password</label>
+          <input id="pw" name="pw" type="password" placeholder="••••••••" />
+        </div>
+
+        <div class="msg" id="msg"></div>
+
+        <div class="row">
+          <label><input type="checkbox" /> Remember me</label>
+          <a href="#">Forgot password?</a>
+        </div>
+
+        <button class="btn" type="submit">Log in</button>
+
+        <div class="divider">or</div>
+
+        <button class="sso" type="button">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M21 12.2c0-.7-.06-1.4-.18-2H12v3.8h5.05a4.3 4.3 0 0 1-1.87 2.83v2.35h3.02C19.96 17.5 21 15.1 21 12.2z" fill="#4285F4"/><path d="M12 21c2.43 0 4.47-.8 5.96-2.18l-3.02-2.35c-.84.56-1.92.9-2.94.9-2.26 0-4.18-1.53-4.87-3.58H3.98v2.42A9 9 0 0 0 12 21z" fill="#34A853"/><path d="M7.13 13.79a5.4 5.4 0 0 1 0-3.45V7.92H3.98a9 9 0 0 0 0 8.07l3.15-2.2z" fill="#FBBC05"/><path d="M12 6.96c1.32 0 2.5.46 3.44 1.35l2.58-2.58A9 9 0 0 0 3.98 7.92l3.15 2.42C7.82 8.49 9.74 6.96 12 6.96z" fill="#EA4335"/></svg>
+          Continue with Google SSO
+        </button>
+
+        <div class="signup">New to Nimbus? <a href="#">Create an account</a></div>
+        <div class="hint">Tip: every legend leaves a trace. Some IDs are faster than others. ⚡</div>
+      </form>
+    </main>
+  </div>
+
+  <!-- ====== Easter-egg FX layers ====== -->
+  <div class="ghost r" id="ghostR"></div>
+  <div class="ghost b" id="ghostB"></div>
+  <div class="scan"></div>
+
+  <div id="terminal">
+    <div id="termOut"></div>
+  </div>
+
+  <div id="crash">
+    <div class="sad">:(</div>
+    <h3>Your workspace ran into a problem and needs to restart. We're just collecting some error info, and then you can try again.</h3>
+    <div class="pct" id="crashPct">0% complete</div>
+    <div class="meta">
+      For more information about this issue and possible fixes, visit&nbsp; https://nimbus.cloud/stop<br/>
+      If you call a support person, give them this info:<br/>
+      Stop code: <strong>QUICKSILVER_BREACH</strong>
+    </div>
+    <div class="qr"></div>
+  </div>
+
+  <div id="flash"></div>
+
+<script>
+  const form    = document.getElementById('loginForm');
+  const userid  = document.getElementById('userid');
+  const pw      = document.getElementById('pw');
+  const msg     = document.getElementById('msg');
+  const SECRET  = 'QUICKSILVER';
+
+  form.addEventListener('submit', (e) => {
+    e.preventDefault();
+    const val = pw.value.trim().toUpperCase();
+
+    if (val === SECRET) {
+      launchHack();
+    } else {
+      // normal mockup behaviour — just a benign validation message
+      msg.style.color = 'var(--err)';
+      msg.textContent = 'Invalid credentials. Please try again.';
+    }
+  });
+
+  function launchHack() {
+    msg.textContent = '';
+    document.activeElement && document.activeElement.blur();
+
+    // 1) Clone the page into RGB-split ghosts, then start shaking.
+    const stage = document.getElementById('stage');
+    const snapshot = stage.outerHTML;
+    document.getElementById('ghostR').innerHTML = snapshot;
+    document.getElementById('ghostB').innerHTML = snapshot;
+    document.getElementById('ghostR').style.filter = 'sepia(1) saturate(6) hue-rotate(-50deg)';
+    document.getElementById('ghostB').style.filter = 'sepia(1) saturate(6) hue-rotate(160deg)';
+    document.getElementById('ghostR').style.opacity = '.55';
+    document.getElementById('ghostB').style.opacity = '.55';
+    document.body.classList.add('glitching');
+
+    // 2) After the glitch builds, slam into the terminal takeover.
+    setTimeout(runTerminal, 1300);
+  }
+
+  function runTerminal() {
+    const term   = document.getElementById('terminal');
+    const out    = document.getElementById('termOut');
+    term.classList.add('on');
+
+    const lines = [
+      { t: '> root@nimbus-core:~# access --grant ALL', d: 320 },
+      { t: '[ OK ] bypassing authentication layer ...', d: 360 },
+      { t: '[ OK ] elevating privileges → SUPERUSER', d: 340 },
+      { t: '[ OK ] dumping session tokens .............. 14,882 keys', d: 420 },
+      { t: '[ OK ] disabling intrusion detection', d: 300 },
+      { t: 'WARN  firewall heartbeat lost', d: 280, warn: true },
+      { t: 'WARN  unauthorized kernel module injected', d: 280, warn: true },
+      { t: '> deploying payload: quicksilver.bin', d: 380 },
+      { t: 'downloading [██████████████████████████] 100%', d: 480 },
+      { t: 'WARN  CORE INTEGRITY FAILURE', d: 260, warn: true },
+      { t: 'WARN  CASCADE FAULT — memory corruption 0xDEADBEEF', d: 240, warn: true },
+    ];
+
+    let i = 0;
+    function next() {
+      if (i < lines.length) {
+        const L = lines[i++];
+        const div = document.createElement('div');
+        div.className = 'line' + (L.warn ? ' warn' : '');
+        div.textContent = L.t;
+        out.appendChild(div);
+        setTimeout(next, L.d);
+      } else {
+        // Big banner
+        const big = document.createElement('div');
+        big.className = 'big';
+        big.textContent = 'SYSTEM COMPROMISED';
+        out.appendChild(big);
+
+        const sig = document.createElement('div');
+        sig.className = 'line';
+        sig.style.marginTop = '14px';
+        sig.innerHTML = 'signed, <strong>// QUICKSILVER //</strong> &nbsp;⚡<span class="cursor"></span>';
+        out.appendChild(sig);
+
+        // intensify, then crash
+        term.classList.add('glitchtext');
+        setTimeout(crash, 1500);
+      }
+    }
+    next();
+  }
+
+  function crash() {
+    // white flash
+    const flash = document.getElementById('flash');
+    flash.classList.add('fire');
+
+    setTimeout(() => {
+      // tear everything down
+      document.body.classList.remove('glitching');
+      document.getElementById('terminal').classList.remove('on');
+      document.getElementById('ghostR').style.display = 'none';
+      document.getElementById('ghostB').style.display = 'none';
+
+      // show BSOD-style crash
+      const crash = document.getElementById('crash');
+      crash.classList.add('on');
+
+      // tick up the "collecting error info" percentage
+      const pct = document.getElementById('crashPct');
+      let n = 0;
+      const iv = setInterval(() => {
+        n += Math.floor(Math.random() * 11) + 4;
+        if (n >= 100) { n = 100; clearInterval(iv); }
+        pct.textContent = n + '% complete';
+      }, 240);
+    }, 220);
+  }
+</script>
+</body>
+</html>

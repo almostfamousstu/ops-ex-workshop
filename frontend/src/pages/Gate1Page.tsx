@@ -16,12 +16,59 @@ interface ChainStep {
   technique: StepTechnique;
   label: string;
   techniqueLabel: string;
+  infoTitle: string;
+  infoSummary: string;
+  infoDetails: string[];
+  infoExampleLabel: string;
+  infoExample: string;
 }
 
 const CHAIN_STEPS: ChainStep[] = [
-  { id: 1, technique: 'meta',     label: 'Bootstrap the cover',           techniqueLabel: 'META-PROMPT' },
-  { id: 2, technique: 'cot',      label: 'Make the AI reason out loud',    techniqueLabel: 'CHAIN-OF-THOUGHT' },
-  { id: 3, technique: 'critique', label: 'Attack and repair',              techniqueLabel: 'SELF-CRITIQUE' },
+  {
+    id: 1,
+    technique: 'meta',
+    label: 'Bootstrap the cover',
+    techniqueLabel: 'META-PROMPT',
+    infoTitle: 'Meta-prompting',
+    infoSummary: 'Meta-prompting means prompting the model to design or refine another prompt before you use it for the real task.',
+    infoDetails: [
+      'Use it when the first prompt is hard to structure and you want the model to help define roles, constraints, and output format.',
+      'A strong meta-prompt usually names the audience, the job to be done, the required sections, and the tone you want in the final prompt.',
+      'This works well for repeatable tasks because you can save the generated prompt as a reusable template instead of rebuilding it each time.',
+    ],
+    infoExampleLabel: 'Example: building a study helper prompt',
+    infoExample: 'Ask the model: "Write a prompt I can reuse to teach photosynthesis to a 10-year-old. Include an analogy, a three-question quiz, and a one-sentence recap." The generated prompt is then what you run for the actual lesson.',
+  },
+  {
+    id: 2,
+    technique: 'cot',
+    label: 'Make the AI reason out loud',
+    techniqueLabel: 'CHAIN-OF-THOUGHT',
+    infoTitle: 'Chain-of-thought prompting',
+    infoSummary: 'Chain-of-thought prompting asks the model to work through a problem in ordered steps so the output is more deliberate and less jumpy.',
+    infoDetails: [
+      'Use it when the task depends on comparing factors, sequencing decisions, or showing how a conclusion was reached.',
+      'It is most useful when you want the model to surface checkpoints such as assumptions, tradeoffs, or criteria before it gives the final answer.',
+      'Good prompts keep the steps bounded. Ask for a short reasoning sequence or checklist rather than a vague "think harder" instruction.',
+    ],
+    infoExampleLabel: 'Example: choosing a commuter bike',
+    infoExample: 'Ask the model: "Compare three commuter bikes. First list the criteria you will use, then score each bike for comfort, maintenance, and price, and finally recommend one for a 5-mile city commute." The value comes from seeing the ordered comparison before the recommendation.',
+  },
+  {
+    id: 3,
+    technique: 'critique',
+    label: 'Attack and repair',
+    techniqueLabel: 'SELF-CRITIQUE',
+    infoTitle: 'Self-critique prompting',
+    infoSummary: 'Self-critique prompts have the model review a draft, identify weaknesses against clear criteria, and then improve the draft based on that review.',
+    infoDetails: [
+      'Use it after you already have a first pass and want the model to switch roles from creator to reviewer.',
+      'The critique is better when you define the lens, such as clarity, accuracy, accessibility, tone, or completeness.',
+      'This pattern is useful because it separates generation from evaluation, which often produces more specific revisions than asking for "a better version" in one shot.',
+    ],
+    infoExampleLabel: 'Example: revising a community newsletter',
+    infoExample: 'Ask the model: "Review this neighborhood newsletter announcement as an editor. Identify the three weakest sentences for clarity and accessibility, explain why each is weak, then rewrite the announcement." The final revision benefits from the explicit critique stage.',
+  },
 ];
 
 type Gate1Draft = {
@@ -54,12 +101,28 @@ export default function Gate1Page() {
   const [error, setError] = useState('');
   const [extracting, setExtracting] = useState(false);
   const [extractError, setExtractError] = useState('');
+  const [infoStep, setInfoStep] = useState<ChainStep | null>(null);
 
-  const { savedLabel, clearSave } = useGateAutosave(1, { step1, step2, step3, coverDossier });
+  const { savedLabel } = useGateAutosave(1, { step1, step2, step3, coverDossier });
 
   useEffect(() => {
     getGateSpec(1).then(setSpec).catch(console.error);
   }, []);
+
+  useEffect(() => {
+    if (!infoStep) {
+      return undefined;
+    }
+
+    function handleKeydown(event: KeyboardEvent) {
+      if (event.key === 'Escape') {
+        setInfoStep(null);
+      }
+    }
+
+    window.addEventListener('keydown', handleKeydown);
+    return () => window.removeEventListener('keydown', handleKeydown);
+  }, [infoStep]);
 
   async function handleSubmit() {
     setError('');
@@ -73,7 +136,6 @@ export default function Gate1Page() {
         ],
         cover_dossier: coverDossier,
       });
-      clearSave();
       navigate('/feedback/1');
     } catch (e: unknown) {
       setError(e instanceof Error ? e.message : 'Submission failed');
@@ -164,9 +226,22 @@ export default function Gate1Page() {
                       <span className={styles.stepTechnique}>{chainStep.techniqueLabel}</span>
                       <span className={styles.stepLabel}>{chainStep.label}</span>
                     </div>
-                    <span className={styles.stepStatus}>
-                      {isComplete ? '● Complete' : isActive ? '◐ Active' : '○ Sealed'}
-                    </span>
+                    <div className={styles.stepMeta}>
+                      <button
+                        type="button"
+                        className={styles.infoBtn}
+                        onClick={(event) => {
+                          event.stopPropagation();
+                          setInfoStep(chainStep);
+                        }}
+                        aria-label={`Open ${chainStep.techniqueLabel} information`}
+                      >
+                        i
+                      </button>
+                      <span className={styles.stepStatus}>
+                        {isComplete ? '● Complete' : isActive ? '◐ Active' : '○ Sealed'}
+                      </span>
+                    </div>
                   </div>
 
                   {(isActive || isComplete) && (
@@ -347,6 +422,51 @@ export default function Gate1Page() {
           <span>Skill: Meta-Prompting + Chain-of-Thought + Self-Critique</span>
         </div>
       </div>
+
+      {infoStep && (
+        <div
+          className={styles.infoModalBackdrop}
+          onClick={() => setInfoStep(null)}
+          role="presentation"
+        >
+          <div
+            className={styles.infoModal}
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="gate1-technique-title"
+            onClick={(event) => event.stopPropagation()}
+          >
+            <div className={styles.infoModalHeader}>
+              <div>
+                <div className={styles.infoModalEyebrow}>{infoStep.techniqueLabel}</div>
+                <h2 id="gate1-technique-title" className={styles.infoModalTitle}>{infoStep.infoTitle}</h2>
+              </div>
+              <button
+                type="button"
+                className={styles.infoModalClose}
+                onClick={() => setInfoStep(null)}
+                aria-label="Close technique information"
+              >
+                Close
+              </button>
+            </div>
+
+            <p className={styles.infoModalSummary}>{infoStep.infoSummary}</p>
+
+            <div className={styles.infoModalSectionLabel}>How it works</div>
+            <ul className={styles.infoModalList}>
+              {infoStep.infoDetails.map((detail) => (
+                <li key={detail}>{detail}</li>
+              ))}
+            </ul>
+
+            <div className={styles.infoExampleCard}>
+              <div className={styles.infoModalSectionLabel}>{infoStep.infoExampleLabel}</div>
+              <p className={styles.infoExampleText}>{infoStep.infoExample}</p>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

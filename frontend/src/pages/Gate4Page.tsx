@@ -80,7 +80,7 @@ export default function Gate4Page() {
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState('');
 
-  const { savedLabel, clearSave } = useGateAutosave(4, { objective, approach, exfil, biggestRisk, aiPartnership, sequence, roles, contingencies });
+  const { savedLabel } = useGateAutosave(4, { objective, approach, exfil, biggestRisk, aiPartnership, sequence, roles, contingencies });
 
   useEffect(() => {
     getGateSpec(4).then(setSpec).catch(console.error);
@@ -111,7 +111,6 @@ export default function Gate4Page() {
         biggest_risk: biggestRisk,
         ai_partnership: aiPartnership,
       });
-      clearSave();
       navigate('/feedback/4');
     } catch (e: unknown) {
       setError(e instanceof Error ? e.message : 'Submission failed');

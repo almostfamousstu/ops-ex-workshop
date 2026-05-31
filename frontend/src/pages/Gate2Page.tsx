@@ -44,7 +44,7 @@ export default function Gate2Page() {
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState('');
 
-  const { savedLabel, clearSave } = useGateAutosave(2, { roleData });
+  const { savedLabel } = useGateAutosave(2, { roleData });
 
   type MaterialKey = 'renoux' | 'programme' | 'schematic' | 'intercept';
   const [materialUrls, setMaterialUrls] = useState<Partial<Record<MaterialKey, string>>>({});
@@ -111,7 +111,6 @@ export default function Gate2Page() {
           sources: roleData.security.sources.split(',').map((s) => s.trim()),
         },
       });
-      clearSave();
       navigate('/feedback/2');
     } catch (e: unknown) {
       setError(e instanceof Error ? e.message : 'Submission failed');

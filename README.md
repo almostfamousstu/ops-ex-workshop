@@ -12,7 +12,7 @@ Self-hosted AI fluency exercise app with a Mission Impossible theme. Teams move 
 
 ## Current Architecture
 
-- Backend: Node 20, Express, Postgres, MinIO, Anthropic SDK.
+- Backend: Node 20, Express, Postgres, MinIO, LLM Mesh (internal AI endpoint).
 - Frontend: React 18, React Router, CSS Modules.
 - Data flow:
 	- Team joins a cohort with join code + callsign.
@@ -30,7 +30,7 @@ cp .env.example .env
 
 Set at least these values in `.env`:
 
-- `ANTHROPIC_API_KEY`: required for AI evaluation and scenario generation.
+- `LLM_MESH_API_KEY`: required for AI evaluation and scenario generation.
 - `ADMIN_TOKEN`: required for admin endpoints.
 
 ### 2. Build and start services
@@ -113,7 +113,9 @@ Frontend runs on http://localhost:5173 and proxies `/api` to `http://localhost:3
 
 Defined in `.env.example` (top level):
 
-- `ANTHROPIC_API_KEY`: Anthropic API key.
+- `LLM_MESH_BASE_URL`: LLM Mesh endpoint base URL (default: `https://analytics-qa.iriworldwide.com/llmadmin/api`).
+- `LLM_MESH_API_KEY`: Bearer token for the LLM Mesh API.
+- `LLM_MESH_MODEL`: model name passed to the Mesh API (default: `gpt-4o`).
 - `ADMIN_TOKEN`: bearer token used by admin endpoints.
 - `POSTGRES_PASSWORD`: used by Postgres service in compose.
 - `MINIO_ROOT_USER`: MinIO root user.
@@ -197,5 +199,6 @@ npm run preview  # preview production build
 - `Mission spec not found`: verify `MISSIONS_PATH` points to a directory containing `monaco-syndicate.yaml`.
 - DB connection errors: confirm Postgres is running and `DATABASE_URL` is correct.
 - MinIO material download issues: check MinIO credentials and bucket/object permissions.
-- Evaluation/scenario stuck in error: verify `ANTHROPIC_API_KEY` is set and valid.
+- Evaluation/scenario stuck in error: verify `LLM_MESH_API_KEY` is set and valid (Bearer token from LLM-Admin API Secrets).
+- `401 Unauthorized` from AI calls: the Bearer key is missing, expired, or incorrect — check `LLM_MESH_API_KEY`.
 - `401 Unauthorized` on protected routes: ensure `Authorization: Bearer <session_token>` header is sent.
